@@ -1,0 +1,421 @@
+
+Discarded input sections
+
+ .group         0x0000000000000000        0xc ./source/main.o
+ .group         0x0000000000000000        0xc ./source/main.o
+ .group         0x0000000000000000        0xc ./source/main.o
+ .group         0x0000000000000000        0xc ./source/main.o
+ .group         0x0000000000000000        0xc ./source/main.o
+ .group         0x0000000000000000        0xc ./source/main.o
+ .group         0x0000000000000000        0xc ./source/main.o
+ .group         0x0000000000000000        0xc ./source/main.o
+ .group         0x0000000000000000        0xc ./source/main.o
+ .group         0x0000000000000000        0xc ./source/main.o
+ .group         0x0000000000000000        0xc ./source/main.o
+ .group         0x0000000000000000        0xc ./source/main.o
+ .group         0x0000000000000000        0xc ./source/main.o
+ .group         0x0000000000000000        0xc ./source/main.o
+ .group         0x0000000000000000        0xc ./source/main.o
+ .group         0x0000000000000000        0xc ./source/main.o
+ .group         0x0000000000000000        0xc ./source/main.o
+ .group         0x0000000000000000        0xc ./source/main.o
+ .group         0x0000000000000000        0xc ./source/main.o
+ .group         0x0000000000000000        0xc ./source/main.o
+ .group         0x0000000000000000        0xc ./source/main.o
+ .group         0x0000000000000000        0xc ./source/main.o
+ .group         0x0000000000000000        0xc ./source/main.o
+ .group         0x0000000000000000        0xc ./source/main.o
+ .group         0x0000000000000000        0xc ./source/main.o
+ .group         0x0000000000000000        0xc ./source/main.o
+ .group         0x0000000000000000        0xc ./source/main.o
+ .group         0x0000000000000000        0xc ./source/main.o
+ .group         0x0000000000000000        0xc ./source/main.o
+ .group         0x0000000000000000        0xc ./source/main.o
+ .group         0x0000000000000000        0xc ./source/main.o
+ .group         0x0000000000000000        0xc ./source/main.o
+ .group         0x0000000000000000        0xc ./source/main.o
+ .group         0x0000000000000000        0xc ./source/main.o
+ .group         0x0000000000000000        0xc ./source/main.o
+ .group         0x0000000000000000        0xc ./source/main.o
+ .group         0x0000000000000000        0xc ./source/main.o
+ .group         0x0000000000000000        0xc ./source/main.o
+ .group         0x0000000000000000        0xc ./source/main.o
+ .group         0x0000000000000000        0xc ./source/main.o
+ .group         0x0000000000000000        0xc ./source/main.o
+ .group         0x0000000000000000        0xc ./source/main.o
+ .group         0x0000000000000000        0xc ./source/main.o
+ .group         0x0000000000000000        0xc ./source/main.o
+ .group         0x0000000000000000        0xc ./source/main.o
+ .group         0x0000000000000000        0xc ./source/main.o
+ .text          0x0000000000000000        0x0 ./source/main.o
+ .data          0x0000000000000000        0x0 ./source/main.o
+ .bss           0x0000000000000000        0x0 ./source/main.o
+ .text.CLOCK_EnableClock
+                0x0000000000000000       0x54 ./source/main.o
+ .rodata.ucIPAddress
+                0x0000000000000000        0x4 ./source/main.o
+ .rodata.ucNetMask
+                0x0000000000000000        0x4 ./source/main.o
+ .rodata.ucGatewayAddress
+                0x0000000000000000        0x4 ./source/main.o
+ .rodata.ucDNSServerAddress
+                0x0000000000000000        0x4 ./source/main.o
+ .rodata.ucMACAddress
+                0x0000000000000000        0x6 ./source/main.o
+ .bss.ulNextRand
+                0x0000000000000000        0x4 ./source/main.o
+ .text.uxRand   0x0000000000000000       0x40 ./source/main.o
+ .text.xApplicationGetRandomNumber
+                0x0000000000000000       0x1c ./source/main.o
+ .rodata.main.str1.4
+                0x0000000000000000       0x2b ./source/main.o
+ .text.main     0x0000000000000000       0x74 ./source/main.o
+ .rodata.hello_task.str1.4
+                0x0000000000000000       0x22 ./source/main.o
+ .text.hello_task
+                0x0000000000000000       0x30 ./source/main.o
+ .rodata.vApplicationIPNetworkEventHook.str1.4
+                0x0000000000000000       0x85 ./source/main.o
+ .text.vApplicationIPNetworkEventHook
+                0x0000000000000000       0xc0 ./source/main.o
+ .text.ulApplicationGetNextSequenceNumber
+                0x0000000000000000       0x22 ./source/main.o
+ .text.vApplicationMallocFailedHook
+                0x0000000000000000        0x6 ./source/main.o
+ .bss.xTasksAlreadyCreated.9281
+                0x0000000000000000        0x4 ./source/main.o
+ .debug_info    0x0000000000000000     0x1428 ./source/main.o
+ .debug_abbrev  0x0000000000000000      0x263 ./source/main.o
+ .debug_aranges
+                0x0000000000000000       0x58 ./source/main.o
+ .debug_ranges  0x0000000000000000       0x48 ./source/main.o
+ .debug_macro   0x0000000000000000      0x28a ./source/main.o
+ .debug_macro   0x0000000000000000      0xaf0 ./source/main.o
+ .debug_macro   0x0000000000000000       0x38 ./source/main.o
+ .debug_macro   0x0000000000000000       0x10 ./source/main.o
+ .debug_macro   0x0000000000000000      0x12e ./source/main.o
+ .debug_macro   0x0000000000000000      0x5b3 ./source/main.o
+ .debug_macro   0x0000000000000000       0x1c ./source/main.o
+ .debug_macro   0x0000000000000000       0x22 ./source/main.o
+ .debug_macro   0x0000000000000000      0x101 ./source/main.o
+ .debug_macro   0x0000000000000000     0x1011 ./source/main.o
+ .debug_macro   0x0000000000000000      0x11f ./source/main.o
+ .debug_macro   0x0000000000000000       0x2e ./source/main.o
+ .debug_macro   0x0000000000000000     0xe3ac ./source/main.o
+ .debug_macro   0x0000000000000000       0x16 ./source/main.o
+ .debug_macro   0x0000000000000000      0x198 ./source/main.o
+ .debug_macro   0x0000000000000000      0x15a ./source/main.o
+ .debug_macro   0x0000000000000000       0xea ./source/main.o
+ .debug_macro   0x0000000000000000       0x1c ./source/main.o
+ .debug_macro   0x0000000000000000       0x26 ./source/main.o
+ .debug_macro   0x0000000000000000      0x3ae ./source/main.o
+ .debug_macro   0x0000000000000000       0xb5 ./source/main.o
+ .debug_macro   0x0000000000000000      0x120 ./source/main.o
+ .debug_macro   0x0000000000000000       0x80 ./source/main.o
+ .debug_macro   0x0000000000000000       0x97 ./source/main.o
+ .debug_macro   0x0000000000000000       0x10 ./source/main.o
+ .debug_macro   0x0000000000000000      0x326 ./source/main.o
+ .debug_macro   0x0000000000000000       0x16 ./source/main.o
+ .debug_macro   0x0000000000000000       0x22 ./source/main.o
+ .debug_macro   0x0000000000000000       0x1c ./source/main.o
+ .debug_macro   0x0000000000000000       0xd7 ./source/main.o
+ .debug_macro   0x0000000000000000      0x2a7 ./source/main.o
+ .debug_macro   0x0000000000000000       0xe3 ./source/main.o
+ .debug_macro   0x0000000000000000       0x2e ./source/main.o
+ .debug_macro   0x0000000000000000       0x2e ./source/main.o
+ .debug_macro   0x0000000000000000       0x47 ./source/main.o
+ .debug_macro   0x0000000000000000       0x2e ./source/main.o
+ .debug_macro   0x0000000000000000       0x2e ./source/main.o
+ .debug_macro   0x0000000000000000       0x10 ./source/main.o
+ .debug_macro   0x0000000000000000      0x1d4 ./source/main.o
+ .debug_macro   0x0000000000000000       0x34 ./source/main.o
+ .debug_macro   0x0000000000000000      0x15d ./source/main.o
+ .debug_macro   0x0000000000000000       0x10 ./source/main.o
+ .debug_macro   0x0000000000000000      0x122 ./source/main.o
+ .debug_macro   0x0000000000000000      0x12d ./source/main.o
+ .debug_macro   0x0000000000000000       0x70 ./source/main.o
+ .debug_macro   0x0000000000000000       0xe4 ./source/main.o
+ .debug_macro   0x0000000000000000      0x108 ./source/main.o
+ .debug_line    0x0000000000000000      0x8bc ./source/main.o
+ .debug_str     0x0000000000000000    0x90b7f ./source/main.o
+ .comment       0x0000000000000000       0x7a ./source/main.o
+ .debug_frame   0x0000000000000000      0x124 ./source/main.o
+ .ARM.attributes
+                0x0000000000000000       0x34 ./source/main.o
+ .group         0x0000000000000000        0xc ./source/semihost_hardfault.o
+ .text          0x0000000000000000        0x0 ./source/semihost_hardfault.o
+ .data          0x0000000000000000        0x0 ./source/semihost_hardfault.o
+ .bss           0x0000000000000000        0x0 ./source/semihost_hardfault.o
+ .text.HardFault_Handler
+                0x0000000000000000       0x2c ./source/semihost_hardfault.o
+ .debug_info    0x0000000000000000       0x3c ./source/semihost_hardfault.o
+ .debug_abbrev  0x0000000000000000       0x31 ./source/semihost_hardfault.o
+ .debug_aranges
+                0x0000000000000000       0x20 ./source/semihost_hardfault.o
+ .debug_ranges  0x0000000000000000       0x10 ./source/semihost_hardfault.o
+ .debug_macro   0x0000000000000000       0x11 ./source/semihost_hardfault.o
+ .debug_macro   0x0000000000000000      0xaf0 ./source/semihost_hardfault.o
+ .debug_line    0x0000000000000000       0x59 ./source/semihost_hardfault.o
+ .debug_str     0x0000000000000000     0x2f02 ./source/semihost_hardfault.o
+ .comment       0x0000000000000000       0x7a ./source/semihost_hardfault.o
+ .debug_frame   0x0000000000000000       0x20 ./source/semihost_hardfault.o
+ .ARM.attributes
+                0x0000000000000000       0x34 ./source/semihost_hardfault.o
+
+Memory Configuration
+
+Name             Origin             Length             Attributes
+BOARD_FLASH      0x0000000010000000 0x0000000001000000 xr
+SRAMX            0x0000000000000000 0x0000000000030000 xrw
+SRAM_0_1_2_3     0x0000000020000000 0x0000000000028000 xrw
+USB_RAM          0x0000000040100000 0x0000000000002000 xrw
+*default*        0x0000000000000000 0xffffffffffffffff
+
+Linker script and memory map
+
+LOAD ./source/main.o
+LOAD ./source/semihost_hardfault.o
+LOAD /Users/ejacobus/gitroot/SESIP_Demo/lib/nxp/libs/libpower_hardabi.a
+START GROUP
+LOAD /Applications/MCUXpressoIDE_11.2.0_4120/ide/plugins/com.nxp.mcuxpresso.tools.macosx_11.2.0.202001021529/tools/bin/../lib/gcc/arm-none-eabi/9.2.1/../../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libcr_semihost_nf.a
+LOAD /Applications/MCUXpressoIDE_11.2.0_4120/ide/plugins/com.nxp.mcuxpresso.tools.macosx_11.2.0.202001021529/tools/bin/../lib/gcc/arm-none-eabi/9.2.1/../../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libcr_c.a
+LOAD /Applications/MCUXpressoIDE_11.2.0_4120/ide/plugins/com.nxp.mcuxpresso.tools.macosx_11.2.0.202001021529/tools/bin/../lib/gcc/arm-none-eabi/9.2.1/thumb/v7e-m+fp/hard/libcr_eabihelpers.a
+LOAD /Applications/MCUXpressoIDE_11.2.0_4120/ide/plugins/com.nxp.mcuxpresso.tools.macosx_11.2.0.202001021529/tools/bin/../lib/gcc/arm-none-eabi/9.2.1/thumb/v7e-m+fp/hard/libgcc.a
+END GROUP
+                0x0000000010000000                __base_BOARD_FLASH = 0x10000000
+                0x0000000010000000                __base_Flash = 0x10000000
+                0x0000000011000000                __top_BOARD_FLASH = 0x11000000
+                0x0000000011000000                __top_Flash = 0x11000000
+                0x0000000000000000                __base_SRAMX = 0x0
+                0x0000000000000000                __base_RAM = 0x0
+                0x0000000000030000                __top_SRAMX = 0x30000
+                0x0000000000030000                __top_RAM = 0x30000
+                0x0000000020000000                __base_SRAM_0_1_2_3 = 0x20000000
+                0x0000000020000000                __base_RAM2 = 0x20000000
+                0x0000000020028000                __top_SRAM_0_1_2_3 = 0x20028000
+                0x0000000020028000                __top_RAM2 = 0x20028000
+                0x0000000040100000                __base_USB_RAM = 0x40100000
+                0x0000000040100000                __base_RAM3 = 0x40100000
+                0x0000000040102000                __top_USB_RAM = 0x40102000
+                0x0000000040102000                __top_RAM3 = 0x40102000
+
+.text           0x0000000000000000       0x3c load address 0x0000000010000000
+ FILL mask 0xff
+                0x0000000000000000                __vectors_start__ = ABSOLUTE (.)
+ *(SORT_BY_ALIGNMENT(.isr_vector))
+                0x0000000000000000                . = ALIGN (0x4)
+                0x0000000000000000                __section_table_start = .
+                0x0000000000000000                __data_section_table = .
+                0x0000000000000000        0x4 LONG 0x3c ((LOADADDR (.data_RAM) - LOADADDR (.text)) + __base_SRAMX)
+                0x0000000000000004        0x4 LONG 0x3c ADDR (.data_RAM)
+                0x0000000000000008        0x4 LONG 0x0 SIZEOF (.data_RAM)
+                0x000000000000000c        0x4 LONG 0x3c ((LOADADDR (.data) - LOADADDR (.text)) + __base_SRAMX)
+                0x0000000000000010        0x4 LONG 0x20000000 ADDR (.data)
+                0x0000000000000014        0x4 LONG 0x0 SIZEOF (.data)
+                0x0000000000000018        0x4 LONG 0x3c ((LOADADDR (.data_RAM3) - LOADADDR (.text)) + __base_SRAMX)
+                0x000000000000001c        0x4 LONG 0x40100000 ADDR (.data_RAM3)
+                0x0000000000000020        0x4 LONG 0x0 SIZEOF (.data_RAM3)
+                0x0000000000000024                __data_section_table_end = .
+                0x0000000000000024                __bss_section_table = .
+                0x0000000000000024        0x4 LONG 0x3c ADDR (.bss_RAM)
+                0x0000000000000028        0x4 LONG 0x0 SIZEOF (.bss_RAM)
+                0x000000000000002c        0x4 LONG 0x20000000 ADDR (.bss)
+                0x0000000000000030        0x4 LONG 0x0 SIZEOF (.bss)
+                0x0000000000000034        0x4 LONG 0x40100000 ADDR (.bss_RAM3)
+                0x0000000000000038        0x4 LONG 0x0 SIZEOF (.bss_RAM3)
+                0x000000000000003c                __bss_section_table_end = .
+                0x000000000000003c                __section_table_end = .
+ *(SORT_BY_ALIGNMENT(.after_vectors*))
+ *(SORT_BY_ALIGNMENT(.text*))
+ *freertos*/tasks.o(SORT_BY_ALIGNMENT(.rodata*))
+ *(SORT_BY_ALIGNMENT(.rodata) SORT_BY_ALIGNMENT(.rodata.*) SORT_BY_ALIGNMENT(.constdata) SORT_BY_ALIGNMENT(.constdata.*))
+                0x000000000000003c                . = ALIGN (0x4)
+
+.glue_7         0x000000000000003c        0x0 load address 0x000000001000003c
+ .glue_7        0x000000000000003c        0x0 linker stubs
+
+.glue_7t        0x000000000000003c        0x0 load address 0x000000001000003c
+ .glue_7t       0x000000000000003c        0x0 linker stubs
+
+.vfp11_veneer   0x000000000000003c        0x0 load address 0x000000001000003c
+ .vfp11_veneer  0x000000000000003c        0x0 linker stubs
+
+.v4_bx          0x000000000000003c        0x0 load address 0x000000001000003c
+ .v4_bx         0x000000000000003c        0x0 linker stubs
+
+.ARM.extab
+ *(SORT_BY_ALIGNMENT(.ARM.extab*) SORT_BY_ALIGNMENT(.gnu.linkonce.armextab.*))
+
+.ARM.exidx      0x000000000000003c        0x0 load address 0x000000001000003c
+                0x000000000000003c                __exidx_start = .
+ *(SORT_BY_ALIGNMENT(.ARM.exidx*) SORT_BY_ALIGNMENT(.gnu.linkonce.armexidx.*))
+                0x000000000000003c                __exidx_end = .
+                0x000000000000003c                _etext = .
+
+.m_usb_data
+ *(SORT_BY_ALIGNMENT(m_usb_global))
+
+.data_RAM       0x000000000000003c        0x0 load address 0x000000001000003c
+ FILL mask 0xff
+                [!provide]                        PROVIDE (__start_data_RAM = .)
+                [!provide]                        PROVIDE (__start_data_SRAMX = .)
+ *(SORT_BY_ALIGNMENT(.ramfunc.$RAM))
+ *(SORT_BY_ALIGNMENT(.ramfunc.$SRAMX))
+ *(SORT_BY_ALIGNMENT(.data.$RAM))
+ *(SORT_BY_ALIGNMENT(.data.$SRAMX))
+ *(SORT_BY_ALIGNMENT(.data.$RAM.*))
+ *(SORT_BY_ALIGNMENT(.data.$SRAMX.*))
+                0x000000000000003c                . = ALIGN (0x4)
+                [!provide]                        PROVIDE (__end_data_RAM = .)
+                [!provide]                        PROVIDE (__end_data_SRAMX = .)
+
+.data_RAM3      0x0000000040100000        0x0 load address 0x000000001000003c
+ FILL mask 0xff
+                [!provide]                        PROVIDE (__start_data_RAM3 = .)
+                [!provide]                        PROVIDE (__start_data_USB_RAM = .)
+ *(SORT_BY_ALIGNMENT(.ramfunc.$RAM3))
+ *(SORT_BY_ALIGNMENT(.ramfunc.$USB_RAM))
+ *(SORT_BY_ALIGNMENT(.data.$RAM3))
+ *(SORT_BY_ALIGNMENT(.data.$USB_RAM))
+ *(SORT_BY_ALIGNMENT(.data.$RAM3.*))
+ *(SORT_BY_ALIGNMENT(.data.$USB_RAM.*))
+                0x0000000040100000                . = ALIGN (0x4)
+                [!provide]                        PROVIDE (__end_data_RAM3 = .)
+                [!provide]                        PROVIDE (__end_data_USB_RAM = .)
+
+.uninit_RESERVED
+                0x0000000020000000        0x0
+                0x0000000020000000                _start_uninit_RESERVED = .
+ *(SORT_BY_ALIGNMENT(.bss.$RESERVED*))
+                0x0000000020000000                . = ALIGN (0x4)
+                0x0000000020000000                _end_uninit_RESERVED = .
+
+.data           0x0000000020000000        0x0 load address 0x000000001000003c
+ FILL mask 0xff
+                0x0000000020000000                _data = .
+                [!provide]                        PROVIDE (__start_data_RAM2 = .)
+                [!provide]                        PROVIDE (__start_data_SRAM_0_1_2_3 = .)
+ *(SORT_BY_ALIGNMENT(vtable))
+ *(SORT_BY_ALIGNMENT(.ramfunc*))
+ *(SORT_BY_ALIGNMENT(CodeQuickAccess))
+ *(SORT_BY_ALIGNMENT(DataQuickAccess))
+ *(SORT_BY_ALIGNMENT(RamFunction))
+ *(SORT_BY_ALIGNMENT(.data*))
+                0x0000000020000000                . = ALIGN (0x4)
+                0x0000000020000000                _edata = .
+                [!provide]                        PROVIDE (__end_data_RAM2 = .)
+                [!provide]                        PROVIDE (__end_data_SRAM_0_1_2_3 = .)
+
+.bss_RAM        0x000000000000003c        0x0
+                [!provide]                        PROVIDE (__start_bss_RAM = .)
+                [!provide]                        PROVIDE (__start_bss_SRAMX = .)
+ *(SORT_BY_ALIGNMENT(.bss.$RAM))
+ *(SORT_BY_ALIGNMENT(.bss.$SRAMX))
+ *(SORT_BY_ALIGNMENT(.bss.$RAM.*))
+ *(SORT_BY_ALIGNMENT(.bss.$SRAMX.*))
+                0x000000000000003c                . = ALIGN ((. != 0x0)?0x4:0x1)
+                [!provide]                        PROVIDE (__end_bss_RAM = .)
+                [!provide]                        PROVIDE (__end_bss_SRAMX = .)
+
+.bss_RAM3       0x0000000040100000        0x0
+                [!provide]                        PROVIDE (__start_bss_RAM3 = .)
+                [!provide]                        PROVIDE (__start_bss_USB_RAM = .)
+ *(SORT_BY_ALIGNMENT(.bss.$RAM3))
+ *(SORT_BY_ALIGNMENT(.bss.$USB_RAM))
+ *(SORT_BY_ALIGNMENT(.bss.$RAM3.*))
+ *(SORT_BY_ALIGNMENT(.bss.$USB_RAM.*))
+                0x0000000040100000                . = ALIGN ((. != 0x0)?0x4:0x1)
+                [!provide]                        PROVIDE (__end_bss_RAM3 = .)
+                [!provide]                        PROVIDE (__end_bss_USB_RAM = .)
+
+.bss            0x0000000020000000        0x0
+                0x0000000020000000                _bss = .
+                [!provide]                        PROVIDE (__start_bss_RAM2 = .)
+                [!provide]                        PROVIDE (__start_bss_SRAM_0_1_2_3 = .)
+ *(SORT_BY_ALIGNMENT(.bss*))
+ *(SORT_BY_ALIGNMENT(COMMON))
+                0x0000000020000000                . = ALIGN (0x4)
+                0x0000000020000000                _ebss = .
+                [!provide]                        PROVIDE (__end_bss_RAM2 = .)
+                [!provide]                        PROVIDE (__end_bss_SRAM_0_1_2_3 = .)
+                [!provide]                        PROVIDE (end = .)
+
+.noinit_RAM     0x000000000000003c        0x0
+                [!provide]                        PROVIDE (__start_noinit_RAM = .)
+                [!provide]                        PROVIDE (__start_noinit_SRAMX = .)
+ *(SORT_BY_ALIGNMENT(.noinit.$RAM))
+ *(SORT_BY_ALIGNMENT(.noinit.$SRAMX))
+ *(SORT_BY_ALIGNMENT(.noinit.$RAM.*))
+ *(SORT_BY_ALIGNMENT(.noinit.$SRAMX.*))
+                0x000000000000003c                . = ALIGN (0x4)
+                [!provide]                        PROVIDE (__end_noinit_RAM = .)
+                [!provide]                        PROVIDE (__end_noinit_SRAMX = .)
+
+.noinit_RAM3    0x0000000040100000        0x0
+                [!provide]                        PROVIDE (__start_noinit_RAM3 = .)
+                [!provide]                        PROVIDE (__start_noinit_USB_RAM = .)
+ *(SORT_BY_ALIGNMENT(.noinit.$RAM3))
+ *(SORT_BY_ALIGNMENT(.noinit.$USB_RAM))
+ *(SORT_BY_ALIGNMENT(.noinit.$RAM3.*))
+ *(SORT_BY_ALIGNMENT(.noinit.$USB_RAM.*))
+                0x0000000040100000                . = ALIGN (0x4)
+                [!provide]                        PROVIDE (__end_noinit_RAM3 = .)
+                [!provide]                        PROVIDE (__end_noinit_USB_RAM = .)
+
+.noinit         0x0000000020000000        0x0
+                0x0000000020000000                _noinit = .
+                [!provide]                        PROVIDE (__start_noinit_RAM2 = .)
+                [!provide]                        PROVIDE (__start_noinit_SRAM_0_1_2_3 = .)
+ *(SORT_BY_ALIGNMENT(.noinit*))
+                0x0000000020000000                . = ALIGN (0x4)
+                0x0000000020000000                _end_noinit = .
+                [!provide]                        PROVIDE (__end_noinit_RAM2 = .)
+                [!provide]                        PROVIDE (__end_noinit_SRAM_0_1_2_3 = .)
+                0x0000000000001000                _HeapSize = 0x1000
+
+.heap           0x000000000000003c     0x1000
+                0x000000000000003c                _pvHeapStart = .
+                0x000000000000103c                . = (. + _HeapSize)
+ *fill*         0x000000000000003c     0x1000 
+                0x000000000000103c                . = ALIGN (0x4)
+                0x000000000000103c                _pvHeapLimit = .
+                0x0000000000001000                _StackSize = 0x1000
+
+.heap2stackfill
+                0x000000000000103c     0x1000
+                0x000000000000203c                . = (. + _StackSize)
+ *fill*         0x000000000000103c     0x1000 
+
+.stack          0x000000000002f000        0x0
+                0x000000000002f000                _vStackBase = .
+                0x000000000002f000                . = ALIGN (0x4)
+                0x0000000000030000                _vStackTop = (. + _StackSize)
+                [!provide]                        PROVIDE (__valid_user_code_checksum = (0x0 - ((((((_vStackTop + (ResetISR + 0x1)) + (NMI_Handler + 0x1)) + (HardFault_Handler + 0x1)) + (DEFINED (MemManage_Handler)?MemManage_Handler:0x0 + 0x1)) + (DEFINED (BusFault_Handler)?BusFault_Handler:0x0 + 0x1)) + (DEFINED (UsageFault_Handler)?UsageFault_Handler:0x0 + 0x1))))
+                0x0000000010000000                _image_start = LOADADDR (.text)
+                0x000000001000003c                _image_end = (LOADADDR (.data) + SIZEOF (.data))
+                0x000000000000003c                _image_size = (_image_end - _image_start)
+                0x0000000000000000                __imghdr_loadaddress = ADDR (.text)
+                0x0000000000000001                __imghdr_imagetype = 0x1
+OUTPUT(lpc54018iotmodule_freertos_hello.axf elf32-littlearm)
+
+Cross Reference Table
+
+Symbol                                            File
+BOARD_InitBootClocks                              ./source/main.o
+BOARD_InitBootPins                                ./source/main.o
+BOARD_InitDebugConsole                            ./source/main.o
+DbgConsole_Printf                                 ./source/main.o
+FreeRTOS_GetAddressConfiguration                  ./source/main.o
+FreeRTOS_IPInit                                   ./source/main.o
+FreeRTOS_IsNetworkUp                              ./source/main.o
+FreeRTOS_inet_ntoa                                ./source/main.o
+HardFault_Handler                                 ./source/semihost_hardfault.o
+main                                              ./source/main.o
+ulApplicationGetNextSequenceNumber                ./source/main.o
+uxRand                                            ./source/main.o
+vApplicationIPNetworkEventHook                    ./source/main.o
+vApplicationMallocFailedHook                      ./source/main.o
+vTaskDelay                                        ./source/main.o
+vTaskStartScheduler                               ./source/main.o
+xApplicationGetRandomNumber                       ./source/main.o
+xTaskCreate                                       ./source/main.o

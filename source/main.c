@@ -23,6 +23,7 @@
 
 
 #include "FreeRTOS_IP.h"
+#include "FreeRTOS_Sockets.h"
 #include "NetworkInterface.h"
 /*******************************************************************************
  * Definitions
@@ -141,16 +142,16 @@ void vApplicationIPNetworkEventHook( eIPCallbackEvent_t eNetworkEvent )
          * server. */
         FreeRTOS_GetAddressConfiguration( &ulIPAddress, &ulNetMask, &ulGatewayAddress, &ulDNSServerAddress );
         FreeRTOS_inet_ntoa( ulIPAddress, cBuffer );
-        PRINTF( ( "\r\n\r\nIP Address: %s\r\n", cBuffer ) );
+        PRINTF(  "\r\n\r\nIP Address: %s\r\n", cBuffer  );
 
         FreeRTOS_inet_ntoa( ulNetMask, cBuffer );
-        PRINTF( ( "Subnet Mask: %s\r\n", cBuffer ) );
+        PRINTF(  "Subnet Mask: %s\r\n", cBuffer  );
 
         FreeRTOS_inet_ntoa( ulGatewayAddress, cBuffer );
-        PRINTF( ( "Gateway Address: %s\r\n", cBuffer ) );
+        PRINTF(  "Gateway Address: %s\r\n", cBuffer  );
 
         FreeRTOS_inet_ntoa( ulDNSServerAddress, cBuffer );
-        PRINTF( ( "DNS Server Address: %s\r\n\r\n\r\n", cBuffer ) );
+        PRINTF(  "DNS Server Address: %s\r\n\r\n\r\n", cBuffer  );
     }
 }
 

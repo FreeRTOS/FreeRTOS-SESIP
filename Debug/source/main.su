@@ -1,0 +1,8 @@
+fsl_clock.h:700:20:CLOCK_EnableClock	24	static
+main.c:47:13:uxRand	16	static
+main.c:66:12:xApplicationGetRandomNumber	16	static
+main.c:75:5:main	16	static
+main.c:104:13:hello_task	16	static
+main.c:121:6:vApplicationIPNetworkEventHook	48	static
+main.c:158:17:ulApplicationGetNextSequenceNumber	24	static
+main.c:171:6:vApplicationMallocFailedHook	4	static
