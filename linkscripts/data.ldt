@@ -1,0 +1,8 @@
+<#if memory.name=="SRAMX">
+        */mflash_drv.o(.text .text* .rodata .rodata*)
+        */fsl_spifi.o(.text .text* .rodata .rodata*)
+        */bignum.o(.text .text* .rodata .rodata*)
+        */fsl_enet.o(.text .text* .rodata .rodata*)
+</#if>
+        *(.data.$${memory.alias}*)
+        *(.data.$${memory.name}*)

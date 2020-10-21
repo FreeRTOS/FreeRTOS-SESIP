@@ -31,6 +31,7 @@
 #include "core_mqtt.h"
 #include "plaintext_freertos.h"
 
+#include "provision_interface.h"
 /*******************************************************************************
  * Definitions
  ******************************************************************************/
@@ -47,6 +48,8 @@ static const uint8_t ucMACAddress[6] = { 0xDE, 0xAD, 0x00, 0xBE, 0xEF, 0x01};
  * Prototypes
  ******************************************************************************/
 static void hello_task(void *pvParameters);
+
+extern void CRYPTO_InitHardware(void);
 
 static UBaseType_t ulNextRand = 0;
 
@@ -84,10 +87,15 @@ int main(void)
     CLOCK_EnableClock(kCLOCK_InputMux);
 
     /* attach 12 MHz clock to FLEXCOMM0 (debug console) */
+    CLOCK_AttachClk(BOARD_DEBUG_UART_CLK_ATTACH);
 
     BOARD_InitBootPins();
     BOARD_InitBootClocks();
     BOARD_InitDebugConsole();
+    CRYPTO_InitHardware();
+
+    /* Provision certificates over UART. */
+    vUartProvision();
 
     FreeRTOS_IPInit( ucIPAddress, ucNetMask, ucGatewayAddress, ucDNSServerAddress, ucMACAddress );
 
