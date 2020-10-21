@@ -1,0 +1,12 @@
+[submodule "FreeRTOS/FreeRTOS-Kernel"]
+	path = lib/FreeRTOS/FreeRTOS-Kernel
+	url = git@github.com:FreeRTOS/FreeRTOS-Kernel.git
+[submodule "FreeRTOS/FreeRTOS-Plus-TCP"]
+	path = lib/FreeRTOS/FreeRTOS-Plus-TCP
+	url = git@github.com:FreeRTOS/FreeRTOS-Plus-TCP.git
+[submodule "FreeRTOS/coreMQTT"]
+	path = lib/FreeRTOS/coreMQTT
+	url = git@github.com:FreeRTOS/coreMQTT.git
+[submodule "FreeRTOS/corePKCS11"]
+	path = lib/FreeRTOS/corePKCS11
+	url = git@github.com:FreeRTOS/corePKCS11.git
