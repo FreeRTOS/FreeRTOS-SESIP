@@ -48,10 +48,10 @@ PlaintextTransportStatus_t Plaintext_FreeRTOS_Connect( NetworkContext_t * pNetwo
 
     if( ( pNetworkContext == NULL ) || ( pHostName == NULL ) )
     {
-        LogError( ( "Invalid input parameter(s): Arguments cannot be NULL. pNetworkContext=%p, "
-                    "pHostName=%p.",
-                    pNetworkContext,
-                    pHostName ) );
+//        LogError( ( "Invalid input parameter(s): Arguments cannot be NULL. pNetworkContext=%p, "
+//                    "pHostName=%p.",
+//                    pNetworkContext,
+//                    pHostName ) );
         plaintextStatus = PLAINTEXT_TRANSPORT_INVALID_PARAMETER;
     }
     else
@@ -66,9 +66,9 @@ PlaintextTransportStatus_t Plaintext_FreeRTOS_Connect( NetworkContext_t * pNetwo
         /* A non zero status is an error. */
         if( socketStatus != 0 )
         {
-            LogError( ( "Failed to connect to %s with error %d.",
-                        pHostName,
-                        socketStatus ) );
+//            LogError( ( "Failed to connect to %s with error %d.",
+//                        pHostName,
+//                        socketStatus ) );
             plaintextStatus = PLAINTEXT_TRANSPORT_CONNECT_FAILURE;
         }
     }
@@ -82,12 +82,12 @@ PlaintextTransportStatus_t Plaintext_FreeRTOS_Disconnect( const NetworkContext_t
 
     if( pNetworkContext == NULL )
     {
-        LogError( ( "pNetworkContext cannot be NULL." ) );
+//        LogError( ( "pNetworkContext cannot be NULL." ) );
         plaintextStatus = PLAINTEXT_TRANSPORT_INVALID_PARAMETER;
     }
     else if( pNetworkContext->tcpSocket == FREERTOS_INVALID_SOCKET )
     {
-        LogError( ( "pNetworkContext->tcpSocket cannot be an invalid socket." ) );
+//        LogError( ( "pNetworkContext->tcpSocket cannot be an invalid socket." ) );
         plaintextStatus = PLAINTEXT_TRANSPORT_INVALID_PARAMETER;
     }
     else

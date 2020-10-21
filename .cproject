@@ -101,6 +101,9 @@
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/lib/FreeRTOS/FreeRTOS-Kernel/include}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/lib/FreeRTOS/FreeRTOS-Kernel/portable/GCC/ARM_CM4F}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/lib/FreeRTOS/coreMQTT/source/include}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/lib/FreeRTOS/platform/include}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/lib/FreeRTOS/Logging}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/lib/FreeRTOS/platform/freertos/transport/include}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/lib/nxp/utilities}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/lib/nxp/component/serial_manager}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/lib/nxp/component/lists}&quot;"/>
@@ -293,6 +296,7 @@
 						<entry excluding="portable/BufferManagement/BufferAllocation_2.c|portable/Compiler|portable/NetworkInterface|test" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="lib/FreeRTOS/FreeRTOS-Plus-TCP"/>
 						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="lib/FreeRTOS/FreeRTOS-Plus-TCP/portable/NetworkInterface/LPC54018"/>
 						<entry excluding="test" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="lib/FreeRTOS/coreMQTT"/>
+						<entry excluding="src/tls_freertos.c|src/tls_freertos_pkcs11.c|src/freertos_sockets_wrapper.c" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="lib/FreeRTOS/platform/freertos/transport"/>
 						<entry excluding="enet_txrx_transfer_rxinterrupt" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="lib/nxp"/>
 						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="source"/>
 					</sourceEntries>
