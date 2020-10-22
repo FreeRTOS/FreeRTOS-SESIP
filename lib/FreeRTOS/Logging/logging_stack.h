@@ -39,19 +39,16 @@
 /* Standard Include. */
 #include <stdint.h>
 
+/* NXP Console Logging. */
+#include "fsl_debug_console.h"
+
 /* Metadata information to prepend to every log message. */
 #define LOG_METADATA_FORMAT    "[%s:%d] "
 #define LOG_METADATA_ARGS      __FUNCTION__, __LINE__
 
 /* Common macro for all logging interface macros. */
 #if !defined( DISABLE_LOGGING )
-
-/* Prototype for the function used to print out.  In this case it prints to the
- * console before the network is connected then a UDP port after the network has
- * connected. */
-    extern void vLoggingPrintf( const char * pcFormatString,
-                                ... );
-    #define SdkLog( string )    vLoggingPrintf string
+    #define SdkLog( string )    DbgConsole_Printf string
 #else
     #define SdkLog( string )
 #endif
