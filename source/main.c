@@ -25,6 +25,8 @@
 #include "FreeRTOS_IP.h"
 #include "FreeRTOS_Sockets.h"
 #include "NetworkInterface.h"
+
+#include "plaintext_freertos.h"
 /*******************************************************************************
  * Definitions
  ******************************************************************************/
@@ -101,21 +103,80 @@ int main(void)
  * @brief Task responsible for printing of "Hello world." message.
  */
 
+uint32_t getTimeStampMs()
+{
+	return 0;
+}
+
+void eventCallback( MQTTContext_t * pContext, MQTTPacketInfo_t * pPacketInfo, MQTTDeserializedInfo_t * pDeserializedInfo );
+
+
 static void hello_task(void *pvParameters)
 {
 
-    for (;;)
-    {
-    	if(FreeRTOS_IsNetworkUp())
-    	{
-    		PRINTF("Network is UP\r\n");
-    	}
-    	else
-    	{
-    		PRINTF("Network is DOWN\r\n");
-    	}
-        vTaskDelay(pdMS_TO_TICKS(500));
-    }
+	MQTTContext_t mqttContext;
+	TransportInterface_t transport;
+	MQTTFixedBuffer_t fixedBuffer;
+	uint8_t buffer[ 1024 ];
+
+	// Clear context.
+	memset( ( void * ) &mqttContext, 0x00, sizeof( MQTTContext_t ) );
+
+	// Set transport interface members.
+	transport.pNetworkInterface = &someNetworkInterface;
+	transport.send = Plaintext_FreeRTOS_send;
+	transport.recv = Plaintext_FreeRTOS_recv;
+
+	// Set buffer members.
+	fixedBuffer.pBuffer = buffer;
+	fixedBuffer.size = 1024;
+
+	status = MQTT_Init( &mqttContext, &transport, getTimeStampMs, eventCallback, &fixedBuffer );
+
+	if( status == MQTTSuccess )
+	{
+	    for (;;)
+	    {
+			// True for creating a new session with broker, false if we want to resume an old one.
+			connectInfo.cleanSession = true;
+			// Client ID must be unique to broker. This field is required.
+			connectInfo.pClientIdentifier = "someClientID";
+			connectInfo.clientIdentifierLength = strlen( connectInfo.pClientIdentifier );
+
+			// The following fields are optional.
+			// Value for keep alive.
+			connectInfo.keepAliveSeconds = 60;
+			// Optional username and password.
+			connectInfo.pUserName = "mr_broker";
+			connectInfo.userNameLength = strlen( connectInfo.pUserName );
+			connectInfo.pPassword = "broker_password";
+			connectInfo.passwordLength = strlen( connectInfo.pPassword );
+
+
+
+			// Send the connect packet. Use 100 ms as the timeout to wait for the CONNACK packet.
+			status = MQTT_Connect( &mqttCContext, &connectInfo, &willInfo, 100, &sessionPresent );
+			if( status == MQTTSuccess )
+			{
+				// Since we requested a clean session, this must be false
+				assert( sessionPresent == false );
+				// Do something with the connection.
+
+
+
+				MQTT_Disconnect(&mqttContext);
+			}
+	        vTaskDelay(pdMS_TO_TICKS(500));
+	    }
+	}
+
+	for(;;)
+	{
+		PRINTF("MQTT FAILURE\r\n");
+		vTaskDelay(pdMS_TO_TICKS(1000));
+	}
+
+
 }
 
 void vApplicationIPNetworkEventHook( eIPCallbackEvent_t eNetworkEvent )
