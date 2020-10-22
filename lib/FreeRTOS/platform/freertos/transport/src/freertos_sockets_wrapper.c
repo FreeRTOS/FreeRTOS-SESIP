@@ -60,12 +60,12 @@ BaseType_t Sockets_Connect( Socket_t * pTcpSocket,
 
     if( tcpSocket == FREERTOS_INVALID_SOCKET )
     {
-        LogError( ( "Failed to create new socket." ) );
+        //LogError( ( "Failed to create new socket." ) );
         socketStatus = FREERTOS_SOCKETS_WRAPPER_NETWORK_ERROR;
     }
     else
     {
-        LogDebug( ( "Created new TCP socket." ) );
+        //LogDebug( ( "Created new TCP socket." ) );
 
         /* Connection parameters. */
         serverAddress.sin_family = FREERTOS_AF_INET;
@@ -76,8 +76,8 @@ BaseType_t Sockets_Connect( Socket_t * pTcpSocket,
         /* Check for errors from DNS lookup. */
         if( serverAddress.sin_addr == 0U )
         {
-            LogError( ( "Failed to connect to server: DNS resolution failed: Hostname=%s.",
-                        pHostName ) );
+            //LogError( ( "Failed to connect to server: DNS resolution failed: Hostname=%s.",
+            //            pHostName ) );
             socketStatus = FREERTOS_SOCKETS_WRAPPER_NETWORK_ERROR;
         }
     }
@@ -85,16 +85,16 @@ BaseType_t Sockets_Connect( Socket_t * pTcpSocket,
     if( socketStatus == 0 )
     {
         /* Establish connection. */
-        LogDebug( ( "Creating TCP Connection to %s.", pHostName ) );
+        //LogDebug( ( "Creating TCP Connection to %s.", pHostName ) );
         socketStatus = FreeRTOS_connect( tcpSocket, &serverAddress, sizeof( serverAddress ) );
 
         if( socketStatus != 0 )
         {
-            LogError( ( "Failed to connect to server: FreeRTOS_Connect failed: ReturnCode=%d,"
-                        " Hostname=%s, Port=%u.",
-                        socketStatus,
-                        pHostName,
-                        port ) );
+            //LogError( ( "Failed to connect to server: FreeRTOS_Connect failed: ReturnCode=%d,"
+            //            " Hostname=%s, Port=%u.",
+            //            socketStatus,
+            //            pHostName,
+            //            port ) );
         }
     }
 
@@ -131,7 +131,7 @@ BaseType_t Sockets_Connect( Socket_t * pTcpSocket,
     {
         /* Set the socket. */
         *pTcpSocket = tcpSocket;
-        LogInfo( ( "Established TCP connection with %s.", pHostName ) );
+        //LogInfo( ( "Established TCP connection with %s.", pHostName ) );
     }
 
     return socketStatus;

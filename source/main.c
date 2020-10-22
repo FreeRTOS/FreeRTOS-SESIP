@@ -127,8 +127,10 @@ static void hello_task(void *pvParameters)
 	MQTTConnectInfo_t connectInfo;
 	bool sessionPresent = true;
 
+	// Configure MQTT Context
 	// Clear context.
 	memset( ( void * ) &mqttContext, 0x00, sizeof( MQTTContext_t ) );
+
 
 	// Set transport interface members.
 	transport.pNetworkContext = &someNetworkInterface;
@@ -147,38 +149,52 @@ static void hello_task(void *pvParameters)
 	    {
 			// True for creating a new session with broker, false if we want to resume an old one.
 			connectInfo.cleanSession = true;
+
 			// Client ID must be unique to broker. This field is required.
-			connectInfo.pClientIdentifier = "someClientID";
+			connectInfo.pClientIdentifier = "MyThingName";
 			connectInfo.clientIdentifierLength = strlen( connectInfo.pClientIdentifier );
 
 			// The following fields are optional.
 			// Value for keep alive.
 			connectInfo.keepAliveSeconds = 60;
+
 			// Optional username and password.
 			connectInfo.pUserName = "mr_broker";
 			connectInfo.userNameLength = strlen( connectInfo.pUserName );
 			connectInfo.pPassword = "broker_password";
 			connectInfo.passwordLength = strlen( connectInfo.pPassword );
 
-			//FreeRTOS_socket()
-
-			Plaintext_FreeRTOS_Connect(mqttContext.transportInterface.pNetworkContext,"10.10.10.5",8123,36000,36000);
-
-			// Send the connect packet. Use 100 ms as the timeout to wait for the CONNACK packet.
-			status = MQTT_Connect( &mqttContext, &connectInfo, NULL, 100, &sessionPresent );
-			if( status == MQTTSuccess )
+			if (PLAINTEXT_TRANSPORT_SUCCESS == Plaintext_FreeRTOS_Connect(mqttContext.transportInterface.pNetworkContext,"10.10.10.5",8123,36000,36000))
 			{
-				// Since we requested a clean session, this must be false
-				assert( sessionPresent == false );
-				// Do something with the connection.
+				// Send the connect packet. Use 100 ms as the timeout to wait for the CONNACK packet.
+				status = MQTT_Connect( &mqttContext, &connectInfo, NULL, 100, &sessionPresent );
+				if( status == MQTTSuccess )
+				{
+					// Since we requested a clean session, this must be false
+					assert( sessionPresent == false );
 
-				//MQTT_publish(&mqttContext, "Test/Hello", "Hello" );
+					// Do something with the connection. Publish some data.
+					MQTTPublishInfo_t  info = {
+						MQTTQoS0,
+						false,
+						false,
+						"Test/Hello",
+						10,
+						"Hello",
+						5
+					};
 
-				MQTT_Disconnect(&mqttContext);
+					MQTT_Publish(&mqttContext, &info , 1);
 
-				Plaintext_FreeRTOS_Disconnect(&mqttContext.transportInterface.pNetworkContext);
+					// Disconnect
+					MQTT_Disconnect(&mqttContext);
+
+					Plaintext_FreeRTOS_Disconnect(mqttContext.transportInterface.pNetworkContext);
+				}
+				vTaskDelay(pdMS_TO_TICKS(500));
+			} else {
+				PRINTF(  "Error Connecting to server\r\n" );
 			}
-	        vTaskDelay(pdMS_TO_TICKS(500));
 	    }
 	}
 
@@ -187,8 +203,6 @@ static void hello_task(void *pvParameters)
 		PRINTF("MQTT FAILURE\r\n");
 		vTaskDelay(pdMS_TO_TICKS(1000));
 	}
-
-
 }
 
 void vApplicationIPNetworkEventHook( eIPCallbackEvent_t eNetworkEvent )

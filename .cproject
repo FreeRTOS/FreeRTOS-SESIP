@@ -289,6 +289,9 @@
 							</tool>
 						</toolChain>
 					</folderInfo>
+					<fileInfo id="com.crt.advproject.config.exe.debug.1406489753.1483914328" name="freertos_sockets_wrapper.c" rcbsApplicability="disable" resourcePath="lib/FreeRTOS/platform/freertos/transport/src/freertos_sockets_wrapper.c" toolsToInvoke="com.crt.advproject.gcc.exe.debug.1153005221.1867315064">
+						<tool id="com.crt.advproject.gcc.exe.debug.1153005221.1867315064" name="MCU C Compiler" superClass="com.crt.advproject.gcc.exe.debug.1153005221"/>
+					</fileInfo>
 					<sourceEntries>
 						<entry excluding="portable" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="lib/FreeRTOS/FreeRTOS-Kernel"/>
 						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="lib/FreeRTOS/FreeRTOS-Kernel/portable/GCC/ARM_CM4F"/>
@@ -296,7 +299,7 @@
 						<entry excluding="portable/BufferManagement/BufferAllocation_2.c|portable/Compiler|portable/NetworkInterface|test" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="lib/FreeRTOS/FreeRTOS-Plus-TCP"/>
 						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="lib/FreeRTOS/FreeRTOS-Plus-TCP/portable/NetworkInterface/LPC54018"/>
 						<entry excluding="test" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="lib/FreeRTOS/coreMQTT"/>
-						<entry excluding="src/tls_freertos.c|src/tls_freertos_pkcs11.c|src/freertos_sockets_wrapper.c" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="lib/FreeRTOS/platform/freertos/transport"/>
+						<entry excluding="src/tls_freertos.c|src/tls_freertos_pkcs11.c" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="lib/FreeRTOS/platform/freertos/transport"/>
 						<entry excluding="enet_txrx_transfer_rxinterrupt" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="lib/nxp"/>
 						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="source"/>
 					</sourceEntries>
