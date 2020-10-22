@@ -26,6 +26,7 @@
 #include "FreeRTOS_Sockets.h"
 #include "NetworkInterface.h"
 
+#include "core_mqtt.h"
 #include "plaintext_freertos.h"
 /*******************************************************************************
  * Definitions
@@ -118,6 +119,7 @@ static void hello_task(void *pvParameters)
 	TransportInterface_t transport;
 	MQTTFixedBuffer_t fixedBuffer;
 	uint8_t buffer[ 1024 ];
+	MQTTStatus_t status;
 
 	// Clear context.
 	memset( ( void * ) &mqttContext, 0x00, sizeof( MQTTContext_t ) );
@@ -152,7 +154,7 @@ static void hello_task(void *pvParameters)
 			connectInfo.pPassword = "broker_password";
 			connectInfo.passwordLength = strlen( connectInfo.pPassword );
 
-
+			Plaintext_FreeRTOS_Connect(&mqttContext.transportInterface.pNetworkContext,"10.10.10.5",8123,36000,36000);
 
 			// Send the connect packet. Use 100 ms as the timeout to wait for the CONNACK packet.
 			status = MQTT_Connect( &mqttCContext, &connectInfo, &willInfo, 100, &sessionPresent );
@@ -162,9 +164,9 @@ static void hello_task(void *pvParameters)
 				assert( sessionPresent == false );
 				// Do something with the connection.
 
-
-
 				MQTT_Disconnect(&mqttContext);
+
+				Plaintext_FreeRTOS_Disconnect(&mqttContext.transportInterface.pNetworkContext);
 			}
 	        vTaskDelay(pdMS_TO_TICKS(500));
 	    }
