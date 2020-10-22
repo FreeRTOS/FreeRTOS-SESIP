@@ -176,12 +176,10 @@ static void hello_task(void *pvParameters)
 					// Do something with the connection. Publish some data.
 					MQTTPublishInfo_t  info = {
 						MQTTQoS0,
-						false,
-						false,
-						"Test/Hello",
-						10,
-						"Hello",
-						5
+						false,  // This should not be retained
+						false,  // This is not a duplicate message
+						"Test/Hello", 10,
+						"Hello", 5
 					};
 
 					MQTT_Publish(&mqttContext, &info , 1);
