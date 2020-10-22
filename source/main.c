@@ -109,7 +109,10 @@ uint32_t getTimeStampMs()
 	return 0;
 }
 
-void eventCallback( MQTTContext_t * pContext, MQTTPacketInfo_t * pPacketInfo, MQTTDeserializedInfo_t * pDeserializedInfo );
+void eventCallback( MQTTContext_t * pContext, MQTTPacketInfo_t * pPacketInfo, MQTTDeserializedInfo_t * pDeserializedInfo )
+{
+
+}
 
 
 static void hello_task(void *pvParameters)
@@ -120,12 +123,15 @@ static void hello_task(void *pvParameters)
 	MQTTFixedBuffer_t fixedBuffer;
 	uint8_t buffer[ 1024 ];
 	MQTTStatus_t status;
+	NetworkContext_t someNetworkInterface;
+	MQTTConnectInfo_t connectInfo;
+	bool sessionPresent = true;
 
 	// Clear context.
 	memset( ( void * ) &mqttContext, 0x00, sizeof( MQTTContext_t ) );
 
 	// Set transport interface members.
-	transport.pNetworkInterface = &someNetworkInterface;
+	transport.pNetworkContext = &someNetworkInterface;
 	transport.send = Plaintext_FreeRTOS_send;
 	transport.recv = Plaintext_FreeRTOS_recv;
 
@@ -154,15 +160,19 @@ static void hello_task(void *pvParameters)
 			connectInfo.pPassword = "broker_password";
 			connectInfo.passwordLength = strlen( connectInfo.pPassword );
 
-			Plaintext_FreeRTOS_Connect(&mqttContext.transportInterface.pNetworkContext,"10.10.10.5",8123,36000,36000);
+			//FreeRTOS_socket()
+
+			Plaintext_FreeRTOS_Connect(mqttContext.transportInterface.pNetworkContext,"10.10.10.5",8123,36000,36000);
 
 			// Send the connect packet. Use 100 ms as the timeout to wait for the CONNACK packet.
-			status = MQTT_Connect( &mqttCContext, &connectInfo, &willInfo, 100, &sessionPresent );
+			status = MQTT_Connect( &mqttContext, &connectInfo, NULL, 100, &sessionPresent );
 			if( status == MQTTSuccess )
 			{
 				// Since we requested a clean session, this must be false
 				assert( sessionPresent == false );
 				// Do something with the connection.
+
+				//MQTT_publish(&mqttContext, "Test/Hello", "Hello" );
 
 				MQTT_Disconnect(&mqttContext);
 
