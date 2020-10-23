@@ -133,7 +133,7 @@ static void prvProvision( void )
 
     LogInfo( ( "Do you want to provision the device? y/n" ) );
 
-    ( void ) xReadInput( &ucInput, sizeof( char ), pucTermString, sizeof(pucTermString) );
+    ( void ) xReadInput( &ucInput, sizeof( char ), pucTerminaterString, sizeof(pucTerminaterString) );
     if(  ucInput == ( uint8_t ) 'y' )
     {
         LogInfo( ( "Received y, will provision the device." ) );
@@ -143,7 +143,7 @@ static void prvProvision( void )
         if( pucCert != NULL )
         {
             LogInfo( ( "Successfully read UART cert from UART. Will now try to provision certificate with PKCS #11." )) ;
-            LogInfo( ( "Received:\n %s\n%lu", pucCert, ulCertSize )) ;
+            LogInfo( ( "Received:\n %s", pucCert ) ) ;
             xProvisionCert(pucCert, ulCertSize);
         }
     }
@@ -170,7 +170,6 @@ void vUartProvision( void )
             if( xResult == CKR_OK )
             {
                 LogInfo( ( "Successfully removed old objects." ) ) ;
-                /* Delay for other device to be ready. */
                 prvProvision();
             }
         }

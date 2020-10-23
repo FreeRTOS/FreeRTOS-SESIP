@@ -563,12 +563,21 @@ CK_RV xProvisionCert( CK_BYTE_PTR xCert, CK_ULONG xCertLen )
     /* Create an object using the encoded client certificate. */
     if( xResult == CKR_OK )
     {
-        LogInfo( ( "Write certificate...\r\n" ) );
+        LogInfo( ( "Writing certificate to PKCS #11." ) );
 
         xResult = pxFunctionList->C_CreateObject( xSession,
                                                   ( CK_ATTRIBUTE_PTR ) &xCertificateTemplate,
                                                   sizeof( xCertificateTemplate ) / sizeof( CK_ATTRIBUTE ),
                                                   &xObjectHandle );
+        if( xResult == CKR_OK )
+        {
+            LogInfo( ( "Successfully wrote certificate to PKCS #11." ) );
+        }
+        else
+        {
+            LogError( ( "Failed to write certificate to PKCS #11 with error code %0x.", xResult ) );
+        }
+
     }
 
     if( pucDerObject != NULL )
