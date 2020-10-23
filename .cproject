@@ -300,6 +300,16 @@
 							</tool>
 						</toolChain>
 					</folderInfo>
+					<folderInfo id="com.crt.advproject.config.exe.debug.1406489753.812490645" name="/" resourcePath="lib/mbedtls/include">
+						<toolChain id="com.crt.advproject.toolchain.exe.debug.614737521" name="NXP MCU Tools" superClass="com.crt.advproject.toolchain.exe.debug" unusedChildren="">
+							<tool id="com.crt.advproject.cpp.exe.debug.1940356177" name="MCU C++ Compiler" superClass="com.crt.advproject.cpp.exe.debug.1232409167"/>
+							<tool id="com.crt.advproject.gcc.exe.debug.1896684092" name="MCU C Compiler" superClass="com.crt.advproject.gcc.exe.debug.1153005221"/>
+							<tool id="com.crt.advproject.gas.exe.debug.1066952242" name="MCU Assembler" superClass="com.crt.advproject.gas.exe.debug.1018475423"/>
+							<tool id="com.crt.advproject.link.cpp.exe.debug.186449766" name="MCU C++ Linker" superClass="com.crt.advproject.link.cpp.exe.debug.2053889555"/>
+							<tool id="com.crt.advproject.link.exe.debug.16534723" name="MCU Linker" superClass="com.crt.advproject.link.exe.debug.1765791898"/>
+							<tool id="com.crt.advproject.tool.debug.debug.556660936" name="MCU Debugger" superClass="com.crt.advproject.tool.debug.debug.774817882"/>
+						</toolChain>
+					</folderInfo>
 					<sourceEntries>
 						<entry excluding="portable" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="lib/FreeRTOS/FreeRTOS-Kernel"/>
 						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="lib/FreeRTOS/FreeRTOS-Kernel/portable/GCC/ARM_CM4F"/>
@@ -315,7 +325,10 @@
 						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="lib/FreeRTOS/platform/pkcs11"/>
 						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="lib/FreeRTOS/provision"/>
 						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="lib/FreeRTOS/provision_interface"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="lib/mbedtls/include"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="lib/mbedtls/library"/>
 						<entry excluding="enet_txrx_transfer_rxinterrupt" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="lib/nxp"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="lib/pkcs11"/>
 						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="source"/>
 					</sourceEntries>
 				</configuration>
