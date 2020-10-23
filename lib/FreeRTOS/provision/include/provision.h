@@ -30,10 +30,11 @@
 
 uint8_t * vCreateCsr( void );
 
-CK_RV xProvisionCert( CK_BYTE_PTR xCert, CK_ULONG xCertLen );
+CK_RV xProvisionCert( CK_BYTE_PTR xCert,
+                      CK_ULONG xCertLen );
 
 CK_RV xCheckIfProvisioned( void );
 
 CK_RV xDestroyCryptoObjects( void );
 
-#endif
+#endif /* ifndef _PROVISION_H_ */

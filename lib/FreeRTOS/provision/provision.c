@@ -61,25 +61,25 @@
 /**
  * @brief Size of buffer to use for a generated CSR.
  */
-#define CSR_BUF_SIZE ( 4096UL )
+#define CSR_BUF_SIZE    ( 4096UL )
 
 /**
  * @brief Represents string to be logged when mbedTLS returned error
  * does not contain a high-level code.
  */
-    static const char * pNoHighLevelMbedTlsCodeStr = "<No-High-Level-Code>";
+static const char * pNoHighLevelMbedTlsCodeStr = "<No-High-Level-Code>";
 
 /**
  * @brief Represents string to be logged when mbedTLS returned error
  * does not contain a low-level code.
  */
-    static const char * pNoLowLevelMbedTlsCodeStr = "<No-Low-Level-Code>";
+static const char * pNoLowLevelMbedTlsCodeStr = "<No-Low-Level-Code>";
 
 /**
  * @brief Utility for converting the high-level code in an mbedTLS error to string,
  * if the code-contains a high-level code; otherwise, using a default string.
  */
-    #define mbedtlsHighLevelCodeOrDefault( mbedTlsCode )    \
+#define mbedtlsHighLevelCodeOrDefault( mbedTlsCode )        \
     ( mbedtls_strerror_highlevel( mbedTlsCode ) != NULL ) ? \
     mbedtls_strerror_highlevel( mbedTlsCode ) : pNoHighLevelMbedTlsCodeStr
 
@@ -87,7 +87,7 @@
  * @brief Utility for converting the level-level code in an mbedTLS error to string,
  * if the code-contains a level-level code; otherwise, using a default string.
  */
-    #define mbedtlsLowLevelCodeOrDefault( mbedTlsCode )    \
+#define mbedtlsLowLevelCodeOrDefault( mbedTlsCode )        \
     ( mbedtls_strerror_lowlevel( mbedTlsCode ) != NULL ) ? \
     mbedtls_strerror_lowlevel( mbedTlsCode ) : pNoLowLevelMbedTlsCodeStr
 
@@ -109,24 +109,25 @@ static CK_RV xCreateDeviceKeyPair( CK_SESSION_HANDLE xSession,
     CK_BBOOL xTrue = CK_TRUE;
     CK_ATTRIBUTE xPublicKeyTemplate[] =
     {
-        { CKA_KEY_TYPE,  &xKeyType, sizeof( xKeyType )                           },
-        { CKA_VERIFY,    &xTrue,    sizeof( xTrue )                              },
-        { CKA_EC_PARAMS, xEcParams, sizeof( xEcParams )                          },
-        { CKA_LABEL,     pucPublicKeyLabel,    strlen( ( const char * ) pucPublicKeyLabel ) }
+        { CKA_KEY_TYPE,  &xKeyType,         sizeof( xKeyType )                           },
+        { CKA_VERIFY,    &xTrue,            sizeof( xTrue )                              },
+        { CKA_EC_PARAMS, xEcParams,         sizeof( xEcParams )                          },
+        { CKA_LABEL,     pucPublicKeyLabel, strlen( ( const char * ) pucPublicKeyLabel ) }
     };
 
     CK_ATTRIBUTE xPrivateKeyTemplate[] =
     {
-        { CKA_KEY_TYPE, &xKeyType, sizeof( xKeyType )                            },
-        { CKA_TOKEN,    &xTrue,    sizeof( xTrue )                               },
-        { CKA_PRIVATE,  &xTrue,    sizeof( xTrue )                               },
-        { CKA_SIGN,     &xTrue,    sizeof( xTrue )                               },
-        { CKA_LABEL,    pucPrivateKeyLabel,   strlen( ( const char * ) pucPrivateKeyLabel ) }
+        { CKA_KEY_TYPE, &xKeyType,          sizeof( xKeyType )                            },
+        { CKA_TOKEN,    &xTrue,             sizeof( xTrue )                               },
+        { CKA_PRIVATE,  &xTrue,             sizeof( xTrue )                               },
+        { CKA_SIGN,     &xTrue,             sizeof( xTrue )                               },
+        { CKA_LABEL,    pucPrivateKeyLabel, strlen( ( const char * ) pucPrivateKeyLabel ) }
     };
 
     LogInfo( ( "Creating an EC Key Pair." ) );
 
     xResult = C_GetFunctionList( &pxFunctionList );
+
     if( xResult == CKR_OK )
     {
         xResult = pxFunctionList->C_GenerateKeyPair( xSession,
@@ -136,6 +137,7 @@ static CK_RV xCreateDeviceKeyPair( CK_SESSION_HANDLE xSession,
                                                      xPrivateKeyTemplate, sizeof( xPrivateKeyTemplate ) / sizeof( CK_ATTRIBUTE ),
                                                      pxPublicKeyHandle,
                                                      pxPrivateKeyHandle );
+
         if( xResult != CKR_OK )
         {
             LogError( ( "Failed to generate an EC Key Pair. C_GenerateKeyPair failed with %0x.", xResult ) );
@@ -144,7 +146,6 @@ static CK_RV xCreateDeviceKeyPair( CK_SESSION_HANDLE xSession,
     else
     {
         LogError( ( "Failed to generate an EC Key Pair. Could not get function list pointer." ) );
-
     }
 
     return xResult;
@@ -164,6 +165,7 @@ static int32_t privateKeySigningCallback( void * pvContext,
     CK_RV xResult = CKR_OK;
     int32_t lFinalResult = 0;
     CK_MECHANISM xMech = { 0 };
+
     xMech.mechanism = CKM_ECDSA;
     CK_FUNCTION_LIST_PTR pxP11FunctionList;
     char pcPrivateKeyLabel[] = { pkcs11configLABEL_DEVICE_PRIVATE_KEY_FOR_TLS };
@@ -172,6 +174,7 @@ static int32_t privateKeySigningCallback( void * pvContext,
 
 
     xResult = C_GetFunctionList( &pxP11FunctionList );
+
     if( xResult != CKR_OK )
     {
         LogError( ( "Failed to sign callback hash. Could not get a "
@@ -181,6 +184,7 @@ static int32_t privateKeySigningCallback( void * pvContext,
     if( xResult == CKR_OK )
     {
         xResult = xInitializePkcs11Session( &xSession );
+
         if( xResult != CKR_OK )
         {
             LogError( ( "Failed to sign callback hash. Could not initialize "
@@ -190,8 +194,9 @@ static int32_t privateKeySigningCallback( void * pvContext,
 
     if( xResult == CKR_OK )
     {
-        xResult = xFindObjectWithLabelAndClass( xSession, pcPrivateKeyLabel, 
-                        CKO_CERTIFICATE, &xPrivateKeyHandle );
+        xResult = xFindObjectWithLabelAndClass( xSession, pcPrivateKeyLabel,
+                                                CKO_CERTIFICATE, &xPrivateKeyHandle );
+
         if( xResult != CKR_OK )
         {
             LogError( ( "Failed to sign callback hash. Could not find private key "
@@ -250,15 +255,16 @@ static int32_t privateKeySigningCallback( void * pvContext,
 
 /*-----------------------------------------------------------*/
 
-static int prvRandom ( void * pvCtx,
-                    unsigned char * pucRandom,
-                    size_t xRandomLength )
+static int prvRandom( void * pvCtx,
+                      unsigned char * pucRandom,
+                      size_t xRandomLength )
 {
-    CK_SESSION_HANDLE * pxSession = ( CK_SESSION_HANDLE * ) pvCtx; 
+    CK_SESSION_HANDLE * pxSession = ( CK_SESSION_HANDLE * ) pvCtx;
     CK_RV xResult;
     CK_FUNCTION_LIST_PTR pxP11FunctionList;
 
     xResult = C_GetFunctionList( &pxP11FunctionList );
+
     if( xResult != CKR_OK )
     {
         LogError( ( "Failed to generate a random number in RNG callback. Could not get a "
@@ -267,6 +273,7 @@ static int prvRandom ( void * pvCtx,
     else
     {
         xResult = pxP11FunctionList->C_GenerateRandom( *pxSession, pucRandom, xRandomLength );
+
         if( xResult != CKR_OK )
         {
             LogError( ( "Failed to generate a random number in RNG callback. "
@@ -277,7 +284,8 @@ static int prvRandom ( void * pvCtx,
     return xResult;
 }
 
-static int prvExtractEcPublicKey( mbedtls_ecdsa_context * pxEcdsaContext, CK_OBJECT_HANDLE xPublicKey )
+static int prvExtractEcPublicKey( mbedtls_ecdsa_context * pxEcdsaContext,
+                                  CK_OBJECT_HANDLE xPublicKey )
 {
     CK_ATTRIBUTE xTemplate;
     int lMbedResult = 0;
@@ -291,6 +299,7 @@ static int prvExtractEcPublicKey( mbedtls_ecdsa_context * pxEcdsaContext, CK_OBJ
 
 
     xResult = C_GetFunctionList( &pxP11FunctionList );
+
     if( xResult != CKR_OK )
     {
         LogError( ( "Failed to extract EC public key. Could not get a "
@@ -299,6 +308,7 @@ static int prvExtractEcPublicKey( mbedtls_ecdsa_context * pxEcdsaContext, CK_OBJ
     else
     {
         xResult = xInitializePkcs11Session( &xSession );
+
         if( xResult != CKR_OK )
         {
             LogError( ( "Failed to extract EC public key. Could not initialize "
@@ -312,16 +322,18 @@ static int prvExtractEcPublicKey( mbedtls_ecdsa_context * pxEcdsaContext, CK_OBJ
         xTemplate.pValue = xEcPoint;
         xTemplate.ulValueLen = sizeof( xEcPoint );
         xResult = pxP11FunctionList->C_GetAttributeValue( xSession, xPublicKey, &xTemplate, 1 );
+
         if( xResult != CKR_OK )
         {
             LogError( ( "Failed to extract EC public key. Could not get attribute value. "
                         "C_GetAttributeValue failed with %0x.", xResult ) );
         }
     }
-    
+
     if( xResult == CKR_OK )
     {
         lMbedResult = mbedtls_ecp_group_load( &( pxEcdsaContext->grp ), MBEDTLS_ECP_DP_SECP256R1 );
+
         if( lMbedResult != 0 )
         {
             LogError( ( "Failed creating an EC key. "
@@ -333,7 +345,7 @@ static int prvExtractEcPublicKey( mbedtls_ecdsa_context * pxEcdsaContext, CK_OBJ
         }
         else
         {
-            lMbedResult  = mbedtls_ecp_point_read_binary( &( pxEcdsaContext->grp ), &( pxEcdsaContext->Q ), &xEcPoint[ 2 ], xTemplate.ulValueLen - 2 );
+            lMbedResult = mbedtls_ecp_point_read_binary( &( pxEcdsaContext->grp ), &( pxEcdsaContext->Q ), &xEcPoint[ 2 ], xTemplate.ulValueLen - 2 );
 
             if( lMbedResult != 0 )
             {
@@ -351,9 +363,9 @@ static int prvExtractEcPublicKey( mbedtls_ecdsa_context * pxEcdsaContext, CK_OBJ
 }
 
 static CK_RV prvDestroyProvidedObjects( CK_SESSION_HANDLE xSession,
-                               CK_BYTE_PTR * ppxPkcsLabels,
-                               CK_OBJECT_CLASS * xClass,
-                               CK_ULONG ulCount )
+                                        CK_BYTE_PTR * ppxPkcsLabels,
+                                        CK_OBJECT_CLASS * xClass,
+                                        CK_ULONG ulCount )
 {
     CK_RV xResult;
     CK_FUNCTION_LIST_PTR pxFunctionList;
@@ -415,9 +427,9 @@ static int prvSetupCsrCtx( mbedtls_x509write_csr * pxCtx )
     lMbedResult = mbedtls_x509write_csr_set_ns_cert_type( pxCtx, MBEDTLS_X509_NS_CERT_TYPE_SSL_CLIENT );
     configASSERT( lMbedResult == 0 );
 
-    lMbedResult = mbedtls_x509write_csr_set_subject_name( pxCtx, (const char *) "CN=TestSubject" );
+    lMbedResult = mbedtls_x509write_csr_set_subject_name( pxCtx, ( const char * ) "CN=TestSubject" );
     configASSERT( lMbedResult == 0 );
-    
+
     return lMbedResult;
 }
 
@@ -438,7 +450,7 @@ uint8_t * vCreateCsr( void )
     mbedtls_ecdsa_context xEcdsaContext;
     mbedtls_pk_context privKey;
     mbedtls_pk_info_t privKeyInfo;
-    const mbedtls_pk_info_t *header = mbedtls_pk_info_from_type(MBEDTLS_PK_ECKEY);
+    const mbedtls_pk_info_t * header = mbedtls_pk_info_from_type( MBEDTLS_PK_ECKEY );
     mbedtls_x509write_csr req;
 
     xResult = C_GetFunctionList( &pxP11FunctionList );
@@ -447,36 +459,36 @@ uint8_t * vCreateCsr( void )
     xResult = xInitializePkcs11Session( &xSession );
     configASSERT( xResult == CKR_OK );
 
-    lMbedResult = prvSetupCsrCtx(&req);
+    lMbedResult = prvSetupCsrCtx( &req );
     configASSERT( lMbedResult == 0 );
 
     mbedtls_pk_init( &privKey );
 
-    lMbedResult =  mbedtls_pk_setup(&privKey, header);
+    lMbedResult = mbedtls_pk_setup( &privKey, header );
     configASSERT( lMbedResult == 0 );
 
     xResult = xCreateDeviceKeyPair( xSession,
-                                           ( uint8_t * ) pkcs11configLABEL_DEVICE_PRIVATE_KEY_FOR_TLS,
-                                           ( uint8_t * ) pkcs11configLABEL_DEVICE_PUBLIC_KEY_FOR_TLS,
-                                           &xPrivateKey,
-                                           &xPublicKey );
+                                    ( uint8_t * ) pkcs11configLABEL_DEVICE_PRIVATE_KEY_FOR_TLS,
+                                    ( uint8_t * ) pkcs11configLABEL_DEVICE_PUBLIC_KEY_FOR_TLS,
+                                    &xPrivateKey,
+                                    &xPublicKey );
     configASSERT( xResult == CKR_OK );
 
     lMbedResult = prvExtractEcPublicKey( &xEcdsaContext, xPublicKey );
     configASSERT( lMbedResult == 0 );
 
-    memcpy(&privKeyInfo, privKey.pk_info, sizeof(mbedtls_pk_info_t));
+    memcpy( &privKeyInfo, privKey.pk_info, sizeof( mbedtls_pk_info_t ) );
 
     privKeyInfo.sign_func = privateKeySigningCallback;
     privKey.pk_info = &privKeyInfo;
     privKey.pk_ctx = &xEcdsaContext;
 
-    mbedtls_x509write_csr_set_key(&req, &privKey);
+    mbedtls_x509write_csr_set_key( &req, &privKey );
 
-    pucCsrBuf = ( uint8_t * ) pvPortMalloc(CSR_BUF_SIZE);
+    pucCsrBuf = ( uint8_t * ) pvPortMalloc( CSR_BUF_SIZE );
     configASSERT( lMbedResult == 0 );
 
-    lMbedResult = mbedtls_x509write_csr_pem( &req, ( unsigned char *) pucCsrBuf, CSR_BUF_SIZE, &prvRandom, &xSession );
+    lMbedResult = mbedtls_x509write_csr_pem( &req, ( unsigned char * ) pucCsrBuf, CSR_BUF_SIZE, &prvRandom, &xSession );
     configASSERT( lMbedResult == 0 );
 
     xResult = pxP11FunctionList->C_CloseSession( xSession );
@@ -487,7 +499,8 @@ uint8_t * vCreateCsr( void )
     return pucCsrBuf;
 }
 
-CK_RV xProvisionCert( CK_BYTE_PTR xCert, CK_ULONG xCertLen )
+CK_RV xProvisionCert( CK_BYTE_PTR xCert,
+                      CK_ULONG xCertLen )
 {
     CK_FUNCTION_LIST_PTR pxFunctionList;
     CK_RV xResult;
@@ -569,6 +582,7 @@ CK_RV xProvisionCert( CK_BYTE_PTR xCert, CK_ULONG xCertLen )
                                                   ( CK_ATTRIBUTE_PTR ) &xCertificateTemplate,
                                                   sizeof( xCertificateTemplate ) / sizeof( CK_ATTRIBUTE ),
                                                   &xObjectHandle );
+
         if( xResult == CKR_OK )
         {
             LogInfo( ( "Successfully wrote certificate to PKCS #11." ) );
@@ -577,7 +591,6 @@ CK_RV xProvisionCert( CK_BYTE_PTR xCert, CK_ULONG xCertLen )
         {
             LogError( ( "Failed to write certificate to PKCS #11 with error code %0x.", xResult ) );
         }
-
     }
 
     if( pucDerObject != NULL )
@@ -586,7 +599,6 @@ CK_RV xProvisionCert( CK_BYTE_PTR xCert, CK_ULONG xCertLen )
     }
 
     return xResult;
-
 }
 
 CK_RV xCheckIfProvisioned( void )
@@ -595,7 +607,7 @@ CK_RV xCheckIfProvisioned( void )
     CK_SESSION_HANDLE xSession;
     CK_OBJECT_HANDLE xObject;
     CK_FUNCTION_LIST_PTR pxP11FunctionList;
-    
+
     char pcCertificateLabel[] = { pkcs11configLABEL_DEVICE_PRIVATE_KEY_FOR_TLS };
     char pcPrivateKeyLabel[] = { pkcs11configLABEL_DEVICE_PRIVATE_KEY_FOR_TLS };
 
@@ -604,19 +616,20 @@ CK_RV xCheckIfProvisioned( void )
 
     xResult = xInitializePkcs11Session( &xSession );
     configASSERT( xResult == CKR_OK );
-    
+
     xResult = xFindObjectWithLabelAndClass( xSession, pcCertificateLabel, CKO_CERTIFICATE, &xObject );
+
     if( ( xResult == CKR_OK ) && ( xObject != CK_INVALID_HANDLE ) )
     {
         xResult = xFindObjectWithLabelAndClass( xSession, pcPrivateKeyLabel, CKO_PRIVATE_KEY, &xObject );
         configASSERT( xObject != CK_INVALID_HANDLE );
     }
-    
+
     if( xObject == CK_INVALID_HANDLE )
     {
         xResult = CKR_SESSION_HANDLE_INVALID;
         LogInfo( ( "Could not find existing credentials. "
-                    "Device was not already provisioned or memory has been erased." ) );
+                   "Device was not already provisioned or memory has been erased." ) );
     }
     else
     {
@@ -630,6 +643,7 @@ CK_RV xDestroyCryptoObjects( void )
 {
     CK_RV xResult;
     CK_SESSION_HANDLE xSession;
+
     xResult = xInitializePkcs11Session( &xSession );
     configASSERT( xResult == CKR_OK );
 
@@ -649,9 +663,9 @@ CK_RV xDestroyCryptoObjects( void )
     };
 
     xResult = prvDestroyProvidedObjects( xSession,
-                                       pxPkcsLabels,
-                                       xClass,
-                                       sizeof( xClass ) / sizeof( CK_OBJECT_CLASS ) );
+                                         pxPkcsLabels,
+                                         xClass,
+                                         sizeof( xClass ) / sizeof( CK_OBJECT_CLASS ) );
 
     return xResult;
 }

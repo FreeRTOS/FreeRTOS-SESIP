@@ -42,19 +42,20 @@
 #include "provision.h"
 
 
-/* 
- * @brief Buffer size for buffer that will contain certificate 
+/*
+ * @brief Buffer size for buffer that will contain certificate
  *
  * @note Should need waaaaaaaaay less bytes, since we are only doing ECDSA currently, but an RSA cert will probably
  * be around 4096 bytes, so we will leave some buffer room.
  */
-#define CERTIFICATE_SIZE 5000
+#define CERTIFICATE_SIZE    5000
 
 const char pucTerminaterString[] = ">>>>>>";
 
 static uint8_t * prvUploadCsr( void )
 {
     uint8_t * pucCsr = NULL;
+
     LogInfo( ( "Creating CSR" ) );
     pucCsr = vCreateCsr();
 
@@ -64,53 +65,58 @@ static uint8_t * prvUploadCsr( void )
     }
     else
     {
-        LogInfo( ("Outputting CSR:") );
-        LogInfo( ( "\n%s", pucCsr) );
-        LogInfo( ("Finished outputting CSR.") );
-        vPortFree(pucCsr);
+        LogInfo( ( "Outputting CSR:" ) );
+        LogInfo( ( "\n%s", pucCsr ) );
+        LogInfo( ( "Finished outputting CSR." ) );
+        vPortFree( pucCsr );
     }
 }
 
-static uint32_t xReadInput( uint8_t * pucBuffer, uint32_t ulSize, const char * pcTermString, uint32_t ulTermStringLen )
+static uint32_t xReadInput( uint8_t * pucBuffer,
+                            uint32_t ulSize,
+                            const char * pcTermString,
+                            uint32_t ulTermStringLen )
 {
     uint32_t i = 0;
     uint32_t ulTermIter = 0;
     uint32_t ulWritten = 0;
     char cInput = 0x00;
 
-    for(i = 0; i < ( ulSize + ulTermStringLen ); i++)
+    for( i = 0; i < ( ulSize + ulTermStringLen ); i++ )
     {
         cInput = DbgConsole_Getchar();
 
-        if(cInput == pcTermString[ulTermIter])
+        if( cInput == pcTermString[ ulTermIter ] )
         {
-        	ulTermIter++;
+            ulTermIter++;
         }
         else
         {
-        	ulTermIter=0;
-            pucBuffer[ulWritten] = cInput;
+            ulTermIter = 0;
+            pucBuffer[ ulWritten ] = cInput;
             ulWritten++;
         }
+
         /* Ignore NULL in term string. */
         if( ( ulWritten > ulSize ) || ( ulTermIter == ulTermStringLen - 1 ) )
         {
             break;
         }
-
     }
+
     return ulWritten;
 }
 
 static uint8_t * prvReadCertifcate( uint32_t * pulSize )
 {
     uint8_t * pucCert = pvPortMalloc( CERTIFICATE_SIZE );
+
     memset( pucCert, 0x00, CERTIFICATE_SIZE );
 
     if( pucCert != NULL )
     {
         LogInfo( ( "Ready to read device certificate." ) );
-        *pulSize = xReadInput( pucCert, CERTIFICATE_SIZE, pucTerminaterString, sizeof(pucTerminaterString) );
+        *pulSize = xReadInput( pucCert, CERTIFICATE_SIZE, pucTerminaterString, sizeof( pucTerminaterString ) );
     }
     else
     {
@@ -133,29 +139,30 @@ static void prvProvision( void )
 
     LogInfo( ( "Do you want to provision the device? y/n" ) );
 
-    ( void ) xReadInput( &ucInput, sizeof( char ), pucTerminaterString, sizeof(pucTerminaterString) );
-    if(  ucInput == ( uint8_t ) 'y' )
+    ( void ) xReadInput( &ucInput, sizeof( char ), pucTerminaterString, sizeof( pucTerminaterString ) );
+
+    if( ucInput == ( uint8_t ) 'y' )
     {
         LogInfo( ( "Received y, will provision the device." ) );
         prvUploadCsr();
-        pucCert = prvReadCertifcate(&ulCertSize);
+        pucCert = prvReadCertifcate( &ulCertSize );
 
         if( pucCert != NULL )
         {
-            LogInfo( ( "Successfully read UART cert from UART. Will now try to provision certificate with PKCS #11." )) ;
-            LogInfo( ( "Received:\n %s", pucCert ) ) ;
-            xProvisionCert(pucCert, ulCertSize);
+            LogInfo( ( "Successfully read UART cert from UART. Will now try to provision certificate with PKCS #11." ) );
+            LogInfo( ( "Received:\n %s", pucCert ) );
+            xProvisionCert( pucCert, ulCertSize );
         }
     }
     else
     {
         LogInfo( ( "Will not provision the device." ) );
     }
-
 }
 void vUartProvision( void )
 {
     CK_RV xResult = CKR_OK;
+
     LogInfo( ( "Starting Provisioning process..." ) );
     xResult = xCheckIfProvisioned();
     uint8_t ucInput = 0x00;
@@ -163,13 +170,15 @@ void vUartProvision( void )
     if( xResult == CKR_OK )
     {
         LogInfo( ( "Device was already provisioned, should the current credentials be removed? y/n" ) );
-        ( void ) xReadInput( &ucInput, sizeof( char ), pucTerminaterString, sizeof(pucTerminaterString) );
+        ( void ) xReadInput( &ucInput, sizeof( char ), pucTerminaterString, sizeof( pucTerminaterString ) );
+
         if( ucInput == ( uint8_t ) 'y' )
         {
             xResult = xDestroyCertKeys();
+
             if( xResult == CKR_OK )
             {
-                LogInfo( ( "Successfully removed old objects." ) ) ;
+                LogInfo( ( "Successfully removed old objects." ) );
                 prvProvision();
             }
         }
