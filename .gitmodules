@@ -10,3 +10,8 @@
 [submodule "FreeRTOS/corePKCS11"]
 	path = lib/FreeRTOS/corePKCS11
 	url = https://github.com/FreeRTOS/corePKCS11.git
+[submodule "lib/mbedtls"]
+	path = lib/mbedtls
+	url = https://github.com/ARMmbed/mbedtls.git
+[submodule "mbedtls"]
+	branch = mbedtls-2.16
