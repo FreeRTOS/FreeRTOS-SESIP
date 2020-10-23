@@ -365,7 +365,6 @@
 	<storageModule moduleId="org.eclipse.cdt.make.core.buildtargets"/>
 	<storageModule moduleId="refreshScope" versionNumber="2">
 		<configuration configurationName="Debug">
-			<resource resourceType="PROJECT" workspacePath="/lpc54018iotmodule_freertos_hello"/>
 			<resource resourceType="PROJECT" workspacePath="/lpc54018iotmodule_freertos_sesip"/>
 		</configuration>
 		<configuration configurationName="Release">
