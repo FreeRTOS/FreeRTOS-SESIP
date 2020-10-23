@@ -15,3 +15,6 @@
 	url = https://github.com/ARMmbed/mbedtls.git
 [submodule "mbedtls"]
 	branch = mbedtls-2.16
+[submodule "lib/pkcs11"]
+	path = lib/pkcs11
+	url = https://github.com/amazon-freertos/pkcs11.git
