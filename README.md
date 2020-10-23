@@ -6,7 +6,7 @@ This project is an example of a IoT application using FreeRTOS.
 ### Step1 Clone the repository to your local machine
 To clone using HTTPS:
 ```
-git https://github.com/FuschiaPlatinumFoxTerrier/SESIP_Demo --recurse-submodules
+git clone https://github.com/FuschiaPlatinumFoxTerrier/SESIP_Demo --recurse-submodules
 ```
 Using SSH:
 ```
