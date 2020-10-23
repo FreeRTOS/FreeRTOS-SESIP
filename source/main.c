@@ -19,7 +19,9 @@
 #include "board.h"
 
 #include "pin_mux.h"
+
 #include <stdbool.h>
+#include <stdio.h>
 
 
 #include "FreeRTOS_IP.h"
@@ -28,6 +30,7 @@
 
 #include "core_mqtt.h"
 #include "plaintext_freertos.h"
+
 /*******************************************************************************
  * Definitions
  ******************************************************************************/
@@ -36,7 +39,7 @@ static const uint8_t ucIPAddress[ 4 ] = { 192,168,86,43 };
 static const uint8_t ucNetMask[ 4 ] = { 255,255,255,0 };
 static const uint8_t ucGatewayAddress[ 4 ] = { 192,168,86,1 };
 static const uint8_t ucDNSServerAddress[ 4 ] = { 192,168,86,1 };
-static const uint8_t ucMACAddress[6] = { 0xDE, 0xAD, 0x00, 0xBE, 0xEF, 0x00};
+static const uint8_t ucMACAddress[6] = { 0xDE, 0xAD, 0x00, 0xBE, 0xEF, 0x01};
 
 /* Task priorities. */
 #define hello_task_PRIORITY (configMAX_PRIORITIES - 1)
@@ -88,10 +91,10 @@ int main(void)
 
     FreeRTOS_IPInit( ucIPAddress, ucNetMask, ucGatewayAddress, ucDNSServerAddress, ucMACAddress );
 
-    if (xTaskCreate(hello_task, "Hello_task", 1024, NULL, hello_task_PRIORITY, NULL) !=
+    if (xTaskCreate(hello_task, "Hello_task", 2048, NULL, hello_task_PRIORITY, NULL) !=
         pdPASS)
     {
-        PRINTF("Hello Task creation failed!.\r\n");
+        PRINTF("Hello Task creation failed!.\n");
         while (1)
             ;
     }
@@ -131,6 +134,12 @@ static void hello_task(void *pvParameters)
 	// Clear context.
 	memset( ( void * ) &mqttContext, 0x00, sizeof( MQTTContext_t ) );
 
+	while(FreeRTOS_IsNetworkUp() == pdFALSE)
+	{
+		PRINTF("No Network yet\r\n");
+		vTaskDelay(pdMS_TO_TICKS(500));
+	}
+
 
 	// Set transport interface members.
 	transport.pNetworkContext = &someNetworkInterface;
@@ -164,12 +173,19 @@ static void hello_task(void *pvParameters)
 			connectInfo.pPassword = "broker_password";
 			connectInfo.passwordLength = strlen( connectInfo.pPassword );
 
-			if (PLAINTEXT_TRANSPORT_SUCCESS == Plaintext_FreeRTOS_Connect(mqttContext.transportInterface.pNetworkContext,"10.10.10.5",8123,36000,36000))
+			FreeRTOS_debug_printf(("Attempting a connection\n"));
+			PlaintextTransportStatus_t status = Plaintext_FreeRTOS_Connect(mqttContext.transportInterface.pNetworkContext,"10.10.10.5",1883,36000,36000);
+			if (PLAINTEXT_TRANSPORT_SUCCESS == status)
 			{
 				// Send the connect packet. Use 100 ms as the timeout to wait for the CONNACK packet.
 				status = MQTT_Connect( &mqttContext, &connectInfo, NULL, 100, &sessionPresent );
 				if( status == MQTTSuccess )
 				{
+			    	static int counter = 0;
+					char payload[20] = {0};
+
+					snprintf(payload,sizeof(payload),"Hello %d",counter++);
+
 					// Since we requested a clean session, this must be false
 					assert( sessionPresent == false );
 
@@ -179,7 +195,7 @@ static void hello_task(void *pvParameters)
 						false,  // This should not be retained
 						false,  // This is not a duplicate message
 						"Test/Hello", 10,
-						"Hello", 5
+						payload, 5
 					};
 
 					MQTT_Publish(&mqttContext, &info , 1);
@@ -190,15 +206,24 @@ static void hello_task(void *pvParameters)
 					Plaintext_FreeRTOS_Disconnect(mqttContext.transportInterface.pNetworkContext);
 				}
 				vTaskDelay(pdMS_TO_TICKS(500));
-			} else {
-				PRINTF(  "Error Connecting to server\r\n" );
+			} else if(PLAINTEXT_TRANSPORT_INVALID_PARAMETER == status )
+			{
+				FreeRTOS_debug_printf(( "Error Connecting to server : bad parameter\n" ));
+			}
+			else if(PLAINTEXT_TRANSPORT_CONNECT_FAILURE == status)
+			{
+				FreeRTOS_debug_printf(( "Error Connecting to server : connect failure\n" ));
+			}
+			else
+			{
+				FreeRTOS_debug_printf(( "Error Connecting to server : unknown\n" ));
 			}
 	    }
 	}
 
 	for(;;)
 	{
-		PRINTF("MQTT FAILURE\r\n");
+		FreeRTOS_debug_printf(("MQTT FAILURE\n"));
 		vTaskDelay(pdMS_TO_TICKS(1000));
 	}
 }
