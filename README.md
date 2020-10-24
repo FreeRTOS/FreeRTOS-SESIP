@@ -25,11 +25,6 @@ Additionally, for FreeRTOS kernel feature information refer to the [Developer Do
 If you have any questions or need assistance troubleshooting your FreeRTOS project, we have an active community that can help on the [FreeRTOS Community Support Forum](https://forums.freertos.org). Please also refer to [FAQ](http://www.freertos.org/FAQHelp.html) for frequently asked questions.
 
 
-# Cloning
-## CorePKCS11
-After cloning and recursively initializing submodules, navigate to the corePKCS11 library and enter the following command
-`git submodule update --init --recursive --checkout 3rdparty/pkcs11 3rdparty/mbedtls`
-
 # Provisioning
 In order to connect to AWS IoT Core, devices must be provisioned with a certificate and private key that authenticates it to IoT Core.
 
