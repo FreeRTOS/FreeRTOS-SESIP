@@ -12,6 +12,12 @@ Using SSH:
 ```
 git clone git@github.com:FuschiaPlatinumFoxTerrier/SESIP_Demo --recurse-submodules
 ```
+
+If you have downloaded the repo without using the --recurse-submodules argument, or you just want to update the submodules you need to run:
+
+git submodule update --init --recursive
+
+
 ### Step2 Download and install MCUExpresso
 
 You can set up your build environment following the instructions at https://docs.aws.amazon.com/freertos/latest/userguide/getting_started_nxp.html for this board.
