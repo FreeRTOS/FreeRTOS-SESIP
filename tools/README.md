@@ -18,7 +18,7 @@ You will need to have configured the source code with the proper MACRO (TBD) to 
     * On OSX, the UART can generally be found with the command `ls /dev/cu*`
         * As an example, my NXP UART appears as **/dev/cu.usbmodemBSAZAQGQ2**
     * On Linux, it is the same as OSX, but the devices are named with a **tty** style, use `l /dev/tty*`
-    * On Windows, God help you
+    * On Windows, generally the device will be labelled as a COM port. The available COM ports can be checked by opening the device manager application.
 
 # Running the script
 To provision the device, simple run the script with the following commands:
