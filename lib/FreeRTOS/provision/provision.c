@@ -250,6 +250,12 @@ static int32_t privateKeySigningCallback( void * pvContext,
         lFinalResult = -1;
     }
 
+    if( xSession != CK_INVALID_HANDLE )
+    {
+        xResult = pxP11FunctionList->C_CloseSession( xSession );
+        configASSERT( xResult == CKR_OK );
+    }
+
     return lFinalResult;
 }
 
@@ -490,11 +496,12 @@ uint8_t * vCreateCsr( void )
 
     lMbedResult = mbedtls_x509write_csr_pem( &req, ( unsigned char * ) pucCsrBuf, CSR_BUF_SIZE, &prvRandom, &xSession );
     configASSERT( lMbedResult == 0 );
+    mbedtls_x509write_csr_free( &req );
+    mbedtls_ecdsa_free( &xEcdsaContext );
+    mbedtls_ecp_group_free( &( xEcdsaContext.grp ) );
 
     xResult = pxP11FunctionList->C_CloseSession( xSession );
     configASSERT( xResult == CKR_OK );
-
-    pxP11FunctionList->C_Finalize( NULL );
 
     return pucCsrBuf;
 }
@@ -598,6 +605,12 @@ CK_RV xProvisionCert( CK_BYTE_PTR xCert,
         vPortFree( pucDerObject );
     }
 
+    if( xSession != CK_INVALID_HANDLE )
+    {
+        xResult = pxFunctionList->C_CloseSession( xSession );
+        configASSERT( xResult == CKR_OK );
+    }
+
     return xResult;
 }
 
@@ -636,6 +649,12 @@ CK_RV xCheckIfProvisioned( void )
         LogInfo( ( "Device has existing credentials." ) );
     }
 
+    if( xSession != CK_INVALID_HANDLE )
+    {
+        xResult = pxP11FunctionList->C_CloseSession( xSession );
+        configASSERT( xResult == CKR_OK );
+    }
+
     return xResult;
 }
 
@@ -643,6 +662,10 @@ CK_RV xDestroyCryptoObjects( void )
 {
     CK_RV xResult;
     CK_SESSION_HANDLE xSession;
+    CK_FUNCTION_LIST_PTR pxP11FunctionList;
+
+    xResult = C_GetFunctionList( &pxP11FunctionList );
+    configASSERT( xResult == CKR_OK );
 
     xResult = xInitializePkcs11Session( &xSession );
     configASSERT( xResult == CKR_OK );
@@ -666,6 +689,12 @@ CK_RV xDestroyCryptoObjects( void )
                                          pxPkcsLabels,
                                          xClass,
                                          sizeof( xClass ) / sizeof( CK_OBJECT_CLASS ) );
+
+    if( xSession != CK_INVALID_HANDLE )
+    {
+        xResult = pxP11FunctionList->C_CloseSession( xSession );
+        configASSERT( xResult == CKR_OK );
+    }
 
     return xResult;
 }

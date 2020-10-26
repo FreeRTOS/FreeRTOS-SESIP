@@ -128,7 +128,9 @@ static uint8_t * prvReadCertifcate( uint32_t * pulSize )
 
 static CK_RV xDestroyCertKeys( void )
 {
-    xDestroyCryptoObjects();
+    CK_RV xResult = CKR_OK;
+    xResult = xDestroyCryptoObjects();
+    return xResult;
 }
 
 static void prvProvision( void )
