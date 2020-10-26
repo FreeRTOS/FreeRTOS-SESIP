@@ -176,9 +176,9 @@ static void hello_task(void *pvParameters)
 			connectInfo.keepAliveSeconds = 60;
 
 			// Optional username and password.
-			connectInfo.pUserName = "mr_broker";
+			connectInfo.pUserName = "";
 			connectInfo.userNameLength = strlen( connectInfo.pUserName );
-			connectInfo.pPassword = "broker_password";
+			connectInfo.pPassword = "";
 			connectInfo.passwordLength = strlen( connectInfo.pPassword );
 
 			FreeRTOS_debug_printf(("Attempting a connection\n"));
@@ -192,7 +192,7 @@ static void hello_task(void *pvParameters)
 			    	static int counter = 0;
 					char payload[20] = {0};
 
-					snprintf(payload,sizeof(payload),"Hello %d",counter++);
+					int payload_length = snprintf(payload,sizeof(payload),"Hello %d",counter++);
 
 					// Since we requested a clean session, this must be false
 					assert( sessionPresent == false );
@@ -203,7 +203,7 @@ static void hello_task(void *pvParameters)
 						false,  // This should not be retained
 						false,  // This is not a duplicate message
 						"Test/Hello", 10,
-						payload, 5
+						payload, payload_length
 					};
 
 					MQTT_Publish(&mqttContext, &info , 1);
