@@ -62,7 +62,7 @@ uint32_t uxRand()
 {
     static CK_SESSION_HANDLE xSession = CK_INVALID_HANDLE;
     CK_RV xResult = CKR_OK;
-    CK_BYTE ulBytes[4] = { 0 };
+    CK_BYTE ulBytes[ sizeof( uint32_t ) ] = { 0 };
     uint32_t ulNumber = 0;
     uint32_t i = 0;
     BaseType_t xReturn = pdFALSE;
@@ -78,7 +78,7 @@ uint32_t uxRand()
     xResult = C_GetFunctionList( &pxP11FunctionList );
     configASSERT( xResult == CKR_OK );
 
-    for(i = 0; i < 4; i++ )
+    for(i = 0; i < sizeof( uint32_t ); i++ )
     {
         xResult = pxP11FunctionList->C_GenerateRandom( xSession, &( ulBytes[ i ] ), sizeof( CK_BYTE ) );
 
