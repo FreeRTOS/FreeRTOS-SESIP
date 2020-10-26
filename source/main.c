@@ -182,7 +182,7 @@ static void hello_task(void *pvParameters)
 			connectInfo.passwordLength = strlen( connectInfo.pPassword );
 
 			FreeRTOS_debug_printf(("Attempting a connection\n"));
-			PlaintextTransportStatus_t status = Plaintext_FreeRTOS_Connect(mqttContext.transportInterface.pNetworkContext,"10.10.10.5",1883,36000,36000);
+			PlaintextTransportStatus_t status = Plaintext_FreeRTOS_Connect(mqttContext.transportInterface.pNetworkContext,"test.mosquitto.org",1883,36000,36000);
 			if (PLAINTEXT_TRANSPORT_SUCCESS == status)
 			{
 				// Send the connect packet. Use 100 ms as the timeout to wait for the CONNACK packet.
@@ -211,9 +211,24 @@ static void hello_task(void *pvParameters)
 					// Disconnect
 					MQTT_Disconnect(&mqttContext);
 
-					Plaintext_FreeRTOS_Disconnect(mqttContext.transportInterface.pNetworkContext);
 				}
-				vTaskDelay(pdMS_TO_TICKS(500));
+
+				Plaintext_FreeRTOS_Disconnect(mqttContext.transportInterface.pNetworkContext);
+
+				/* Print heap statistics */
+				{
+					HeapStats_t heap_stats;
+					vPortGetHeapStats(&heap_stats);
+					FreeRTOS_debug_printf(( "Available heap space              %d\n", heap_stats.xAvailableHeapSpaceInBytes ));
+					FreeRTOS_debug_printf(( "Largest Free Block                %d\n", heap_stats.xSizeOfLargestFreeBlockInBytes ));
+					FreeRTOS_debug_printf(( "Smallest Free Block               %d\n", heap_stats.xSizeOfSmallestFreeBlockInBytes ));
+					FreeRTOS_debug_printf(( "Number of Free Blocks             %d\n", heap_stats.xNumberOfFreeBlocks ));
+					FreeRTOS_debug_printf(( "Minimum Ever Free Bytes Remaining %d\n", heap_stats.xMinimumEverFreeBytesRemaining ));
+					FreeRTOS_debug_printf(( "Number of Successful Allocations  %d\n", heap_stats.xNumberOfSuccessfulAllocations ));
+					FreeRTOS_debug_printf(( "Number of Successful Frees        %d\n", heap_stats.xNumberOfSuccessfulFrees ));
+				}
+
+				vTaskDelay(pdMS_TO_TICKS(10000));
 			} else if(PLAINTEXT_TRANSPORT_INVALID_PARAMETER == status )
 			{
 				FreeRTOS_debug_printf(( "Error Connecting to server : bad parameter\n" ));
@@ -286,8 +301,11 @@ extern uint32_t ulApplicationGetNextSequenceNumber( uint32_t ulSourceAddress,
     return uxRand();
 }
 
+
+
 void vApplicationMallocFailedHook( void )
 {
+	PRINTF( "\n\nMALLOC FAIL\n\n");
 	for(;;);
 }
 
