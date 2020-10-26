@@ -152,6 +152,7 @@ static void prvProvision( void )
             LogInfo( ( "Successfully read UART cert from UART. Will now try to provision certificate with PKCS #11." ) );
             LogInfo( ( "Received:\n %s", pucCert ) );
             xProvisionCert( pucCert, ulCertSize );
+            vPortFree( pucCert );
         }
     }
     else
