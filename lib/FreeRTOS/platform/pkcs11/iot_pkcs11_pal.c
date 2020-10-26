@@ -51,6 +51,11 @@
 #define pkcs11palFILE_NAME_CLIENT_CERTIFICATE    "FreeRTOS_P11_Certificate.dat"
 #define pkcs11palFILE_NAME_KEY                   "FreeRTOS_P11_Key.dat"
 #define pkcs11palFILE_CODE_SIGN_PUBLIC_KEY       "FreeRTOS_P11_CodeSignKey.dat"
+#define FILENAME_AWS_THING_NAME "aws_thing_name.dat"
+#define FILENAME_AWS_ENDPOINT   "aws_endpoint.dat"
+
+#define MAX_LENGTH_AWS_ENDPOINT   64
+#define MAX_LENGTH_AWS_THING_NAME 32
 
 enum eObjectHandles
 {
@@ -58,7 +63,9 @@ enum eObjectHandles
     eAwsDevicePrivateKey = 1,
     eAwsDevicePublicKey,
     eAwsDeviceCertificate,
-    eAwsCodeSigningKey
+    eAwsCodeSigningKey, 
+    eAwsThing,
+    eAwsThingEndpoint
 };
 
 /* Flash structure */
@@ -73,6 +80,12 @@ mflash_file_t g_cert_files[] =
     { .path = pkcs11palFILE_CODE_SIGN_PUBLIC_KEY,
       .flash_addr = MFLASH_FILE_BASEADDR + ( 2 * MFLASH_FILE_SIZE ),
       .max_size = MFLASH_FILE_SIZE },
+    {.path       = FILENAME_AWS_THING_NAME,
+     .flash_addr = MFLASH_FILE_BASEADDR + 3 * MFLASH_FILE_SIZE,
+     .max_size   = MFLASH_FILE_SIZE},
+    {.path       = FILENAME_AWS_ENDPOINT,
+     .flash_addr = MFLASH_FILE_BASEADDR + 4 * MFLASH_FILE_SIZE,
+     .max_size   = MFLASH_FILE_SIZE},
     { 0 }
 };
 
@@ -114,6 +127,20 @@ void prvLabelToFilenameHandle( uint8_t * pcLabel,
         {
             *pcFileName = pkcs11palFILE_CODE_SIGN_PUBLIC_KEY;
             *pHandle = eAwsCodeSigningKey;
+        }
+        else if( 0 == memcmp( pcLabel,
+                              &FILENAME_AWS_THING_NAME,
+                              sizeof( FILENAME_AWS_THING_NAME ) ) )
+        {
+            *pcFileName = FILENAME_AWS_THING_NAME;
+            *pHandle = eAwsThing;
+        }
+        else if( 0 == memcmp( pcLabel,
+                              &FILENAME_AWS_ENDPOINT,
+                              sizeof( FILENAME_AWS_ENDPOINT ) ) )
+        {
+            *pcFileName = FILENAME_AWS_ENDPOINT;
+            *pHandle = eAwsThingEndpoint;
         }
         else
         {

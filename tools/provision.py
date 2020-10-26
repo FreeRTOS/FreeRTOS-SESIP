@@ -47,6 +47,12 @@ class IoTAgent:
         response = self.client.attach_thing_principal(
             thingName=thing_name, principal=cert_arn
         )
+        
+    def get_endpoint(self):
+        response = self.client.describe_endpoint(
+                        endpointType='iot:Data-ATS'
+                    )
+        return response['endpointAddress']
 
 class UartInterface():
     def __init__(self, serial):
@@ -128,6 +134,9 @@ def provision(stream_interface, thing_name):
     a thing name.
     """
     print("Beginning provisioning script...")
+    client = boto3.client('iot')
+    agent = IoTAgent(client)
+
     device_output = stream_interface.read("y/n", -1)
     if "Device was already provisioned" in device_output:
         user_input = input()
@@ -136,6 +145,10 @@ def provision(stream_interface, thing_name):
     if "Do you want to provision the device" in device_output:
         user_input = input()
         stream_interface.write(user_input)
+        device_output = stream_interface.read("read thing name", -1)
+        stream_interface.write(thing_name)
+        device_output = stream_interface.read("read thing endpoint", -1)
+        stream_interface.write(agent.get_endpoint())
         device_output = stream_interface.read("Finished outputting CSR", -1)
         csr = ""
         if "Finished outputting CSR" in device_output:
