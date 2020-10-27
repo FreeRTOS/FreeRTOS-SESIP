@@ -32,6 +32,9 @@
 #include "plaintext_freertos.h"
 
 #include "provision_interface.h"
+
+#include "core_pkcs11.h"
+#include "pkcs11.h"
 /*******************************************************************************
  * Definitions
  ******************************************************************************/
@@ -51,32 +54,58 @@ static void hello_task(void *pvParameters);
 
 extern void CRYPTO_InitHardware(void);
 
-static UBaseType_t ulNextRand = 0;
-
-UBaseType_t uxRand( void )
-{
-    const uint32_t ulMultiplier = 0x015a4e35UL, ulIncrement = 1UL;
-
-    /*
-     * Utility function to generate a pseudo random number.
-     *
-     * !!!NOTE!!!
-     * This is not a secure method of generating a random number.  Production
-     * devices should use a True Random Number Generator (TRNG).
-     */
-    ulNextRand = ( ulMultiplier * ulNextRand ) + ulIncrement;
-    return( ( int ) ( ulNextRand >> 16UL ) & 0x7fffUL );
-}
-
 /*******************************************************************************
  * Code
  ******************************************************************************/
+
+uint32_t uxRand()
+{
+    static CK_SESSION_HANDLE xSession = CK_INVALID_HANDLE;
+    CK_RV xResult = CKR_OK;
+    CK_BYTE ulBytes[ sizeof( uint32_t ) ] = { 0 };
+    uint32_t ulNumber = 0;
+    uint32_t i = 0;
+    BaseType_t xReturn = pdFALSE;
+    if( xSession == CK_INVALID_HANDLE )
+    {
+        xResult = xInitializePkcs11Session( &xSession );
+        configASSERT( xSession != CK_INVALID_HANDLE );
+        configASSERT( xResult == CKR_OK );
+    }
+
+    CK_FUNCTION_LIST_PTR pxP11FunctionList;
+
+    xResult = C_GetFunctionList( &pxP11FunctionList );
+    configASSERT( xResult == CKR_OK );
+    
+    xResult = pxP11FunctionList->C_GenerateRandom( xSession, ulBytes, sizeof( uint32_t ) );
+
+    if( xResult != CKR_OK )
+    {
+        LogError( ( "Failed to generate a random number in RNG callback. "
+                    "C_GenerateRandom failed with %0x.", xResult ) );
+    }
+    else
+    {
+        for(i = 0; i < sizeof( uint32_t ); i++ )
+        {
+            ulNumber = ( ulNumber | ( ulBytes[i] ) ) << i;
+        }
+    }
+
+    if( xResult == CKR_OK )
+    {
+        xReturn = pdTRUE;
+    }
+	return xReturn;
+}
 
 BaseType_t xApplicationGetRandomNumber( uint32_t *pulNumber )
 {
 	*pulNumber = uxRand();
 	return pdTRUE;
 }
+
 
 /*!
  * @brief Application entry point.
