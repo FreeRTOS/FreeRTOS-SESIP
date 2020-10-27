@@ -77,17 +77,17 @@ uint32_t uxRand()
 
     xResult = C_GetFunctionList( &pxP11FunctionList );
     configASSERT( xResult == CKR_OK );
+    
+    xResult = pxP11FunctionList->C_GenerateRandom( xSession, ulBytes, sizeof( uint32_t ) );
 
-    for(i = 0; i < sizeof( uint32_t ); i++ )
+    if( xResult != CKR_OK )
     {
-        xResult = pxP11FunctionList->C_GenerateRandom( xSession, &( ulBytes[ i ] ), sizeof( CK_BYTE ) );
-
-        if( xResult != CKR_OK )
-        {
-            LogError( ( "Failed to generate a random number in RNG callback. "
-                        "C_GenerateRandom failed with %0x.", xResult ) );
-        }
-        else
+        LogError( ( "Failed to generate a random number in RNG callback. "
+                    "C_GenerateRandom failed with %0x.", xResult ) );
+    }
+    else
+    {
+        for(i = 0; i < sizeof( uint32_t ); i++ )
         {
             ulNumber = ( ulNumber | ( ulBytes[i] ) ) << i;
         }
