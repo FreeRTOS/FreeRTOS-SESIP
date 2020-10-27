@@ -1,7 +1,6 @@
 /*
  * FreeRTOS Provision Interface v0.0.1
  * Copyright (C) 2020 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
- *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
  * the Software without restriction, including without limitation the rights to
@@ -40,7 +39,14 @@
 #include "task.h"
 #include "provision_interface.h"
 #include "provision.h"
+#include "core_pkcs11.h"
+#include "core_pkcs11_pal.h"
 
+#define FILENAME_AWS_THING_NAME "aws_thing_name.dat"
+#define FILENAME_AWS_ENDPOINT   "aws_endpoint.dat"
+
+#define MAX_LENGTH_AWS_ENDPOINT   64
+#define MAX_LENGTH_AWS_THING_NAME 32
 
 /*
  * @brief Buffer size for buffer that will contain certificate
@@ -52,7 +58,7 @@
 
 const char pucTerminaterString[] = ">>>>>>";
 
-static uint8_t * prvUploadCsr( void )
+static void prvUploadCsr( void )
 {
     uint8_t * pucCsr = NULL;
 
@@ -133,6 +139,75 @@ static CK_RV xDestroyCertKeys( void )
     return xResult;
 }
 
+static CK_RV prvProvisionThingEndpoint( void )
+{
+    CK_RV xResult = CKR_OK;
+    CK_ULONG ulSize = 0;
+    CK_BYTE_PTR pxThingEndpoint[ MAX_LENGTH_AWS_ENDPOINT ] = { 0 };
+    CK_ATTRIBUTE xLabel;
+    CK_OBJECT_HANDLE xHandle = CK_INVALID_HANDLE;
+    
+    
+    LogInfo( ("Ready to read thing endpoint." ) );
+
+    ulSize = xReadInput( pxThingEndpoint, MAX_LENGTH_AWS_ENDPOINT, pucTerminaterString, sizeof( pucTerminaterString ) );
+
+    if( ulSize > 0 )
+    {
+        xLabel.type = CKA_LABEL;
+        xLabel.pValue = FILENAME_AWS_ENDPOINT;
+        xLabel.ulValueLen = sizeof( FILENAME_AWS_ENDPOINT ); 
+
+        LogInfo( ( "Saving thing endpoint: %s", pxThingEndpoint ) );
+
+        xHandle = PKCS11_PAL_SaveObject( &xLabel, pxThingEndpoint, ulSize );
+        if( xHandle == CK_INVALID_HANDLE )
+        {
+            LogError( ( "Failed to save thing endpoint. Error storing to flash, error code: %0x.", xResult ) );
+        }
+    }
+    else
+    {
+        LogError( ( "Failed to save thing endpoint. Received no bytes over the UART." ) );
+    }
+
+    return xResult;
+}
+
+static CK_RV prvProvisionThingName( void )
+{
+    CK_RV xResult = CKR_OK;
+    CK_ULONG ulSize = 0;
+    CK_BYTE_PTR pxThingName[ MAX_LENGTH_AWS_THING_NAME ] = { 0 };
+    CK_ATTRIBUTE xLabel;
+    CK_OBJECT_HANDLE xHandle = CK_INVALID_HANDLE;
+
+    LogInfo( ("Ready to read thing name." ) );
+
+    ulSize = xReadInput( pxThingName, MAX_LENGTH_AWS_THING_NAME, pucTerminaterString, sizeof( pucTerminaterString ) );
+
+    if( ulSize > 0 )
+    {
+        xLabel.type = CKA_LABEL;
+        xLabel.pValue = FILENAME_AWS_THING_NAME;
+        xLabel.ulValueLen = sizeof( FILENAME_AWS_THING_NAME ); 
+
+        LogInfo( ( "Saving thing name: %s", pxThingName ) );
+
+        xHandle = PKCS11_PAL_SaveObject( &xLabel, pxThingName, ulSize );
+        if( xHandle == CK_INVALID_HANDLE )
+        {
+            LogError( ( "Failed to save thing name. Error storing to flash, error code: %0x.", xResult ) );
+        }
+    }
+    else
+    {
+        LogError( ( "Failed to save thing name. Received no bytes over the UART." ) );
+    }
+
+    return xResult;
+}
+
 static void prvProvision( void )
 {
     uint8_t ucInput = 0x00;
@@ -146,6 +221,8 @@ static void prvProvision( void )
     if( ucInput == ( uint8_t ) 'y' )
     {
         LogInfo( ( "Received y, will provision the device." ) );
+        prvProvisionThingName();
+        prvProvisionThingEndpoint();
         prvUploadCsr();
         pucCert = prvReadCertifcate( &ulCertSize );
 
