@@ -11,6 +11,8 @@ You will need to have configured the source code with the proper MACRO (TBD) to 
 * Python 3.6 or greater
 * boto3 
     * Install with `pip install boto3`
+* pyserial 
+    * Install with `pip install pyserial`
 * aws cli
     * https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-install.html
     * Be sure to have run `aws configure` before running the script! It relies on the default credentials created by aws cli.

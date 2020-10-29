@@ -268,3 +268,73 @@ void vUartProvision( void )
         prvProvision();
     }
 }
+
+CK_RV ulGetThingName( char ** pcThingName, uint32_t * ulThingNameSize )
+{
+    static char pxThingName[ MAX_LENGTH_AWS_THING_NAME ] = { 0 };
+    static CK_ULONG ulSize = 0;
+
+    CK_BYTE_PTR pxTempBuf = NULL;
+    CK_BBOOL xIsPrivate;
+    CK_OBJECT_HANDLE xHandle = CK_INVALID_HANDLE;
+    CK_RV xResult = CKR_OK;
+
+    if( pxThingName[0] == 0x00 )
+    {
+        xHandle = PKCS11_PAL_FindObject( FILENAME_AWS_THING_NAME, sizeof( FILENAME_AWS_THING_NAME ) );
+        if( xHandle != CK_INVALID_HANDLE )
+        {
+            xResult = PKCS11_PAL_GetObjectValue( xHandle, &pxTempBuf, &ulSize, &xIsPrivate );
+
+            if( xResult == CKR_OK )
+            {
+                memcpy( pxThingName, pxTempBuf, ulSize );
+                *pcThingName = pxThingName;
+                *ulThingNameSize = ulSize;
+                PKCS11_PAL_GetObjectValueCleanup( pxTempBuf, ulSize );
+            }
+        }
+    }
+    else
+    {
+        *pcThingName = pxThingName;
+        *ulThingNameSize = ulSize;
+    }
+
+    return xResult;
+}
+
+CK_RV ulGetThingEndpoint( char ** pcThingEndpoint, uint32_t * ulThingEndpointSize )
+{
+    static char pxThingEndpoint[ MAX_LENGTH_AWS_ENDPOINT ] = { 0 };
+    static CK_ULONG ulSize = 0;
+
+    CK_BYTE_PTR pxTempBuf = NULL;
+    CK_BBOOL xIsPrivate;
+    CK_OBJECT_HANDLE xHandle = CK_INVALID_HANDLE;
+    CK_RV xResult = CKR_OK;
+
+    if( pxThingEndpoint[0] == 0x00 )
+    {
+        xHandle = PKCS11_PAL_FindObject( FILENAME_AWS_ENDPOINT, sizeof( FILENAME_AWS_ENDPOINT ) );
+        if( xHandle != CK_INVALID_HANDLE )
+        {
+            xResult = PKCS11_PAL_GetObjectValue( xHandle, &pxTempBuf, &ulSize, &xIsPrivate );
+
+            if( xResult == CKR_OK )
+            {
+                memcpy( pxThingEndpoint, pxTempBuf, ulSize );
+                *pcThingEndpoint = pxThingEndpoint;
+                *ulThingEndpointSize = ulSize;
+                PKCS11_PAL_GetObjectValueCleanup( pxTempBuf, ulSize );
+            }
+        }
+    }
+    else
+    {
+        *pcThingEndpoint = pxThingEndpoint;
+        *ulThingEndpointSize = ulSize;
+    }
+
+    return xResult;
+}

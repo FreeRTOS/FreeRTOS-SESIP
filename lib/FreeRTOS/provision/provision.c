@@ -651,8 +651,7 @@ CK_RV xCheckIfProvisioned( void )
 
     if( xSession != CK_INVALID_HANDLE )
     {
-        xResult = pxP11FunctionList->C_CloseSession( xSession );
-        configASSERT( xResult == CKR_OK );
+        ( void ) pxP11FunctionList->C_CloseSession( xSession );
     }
 
     return xResult;

@@ -36,10 +36,10 @@
 /* FreeRTOS includes. */
 #include "FreeRTOS.h"
 #include "FreeRTOSIPConfig.h"
-#include "iot_crypto.h"
 #include "task.h"
 #include "core_pkcs11.h"
 #include "core_pkcs11_config.h"
+#include "tls_freertos_pkcs11.h"
 
 /* Flash write */
 #include "mflash_file.h"
@@ -269,6 +269,16 @@ CK_RV PKCS11_PAL_GetObjectValue( CK_OBJECT_HANDLE xHandle,
         pcFileName = pkcs11palFILE_CODE_SIGN_PUBLIC_KEY;
         *pIsPrivate = CK_FALSE;
     }
+    else if( xHandle == eAwsThing )
+    {
+        pcFileName = FILENAME_AWS_THING_NAME;
+        *pIsPrivate = CK_FALSE;
+    }
+    else if( xHandle == eAwsThingEndpoint )
+    {
+        pcFileName = FILENAME_AWS_ENDPOINT;
+        *pIsPrivate = CK_FALSE;
+    }
     else
     {
         ulReturn = CKR_KEY_HANDLE_INVALID;
@@ -310,7 +320,10 @@ void PKCS11_PAL_GetObjectValueCleanup( uint8_t * pucData,
 CK_RV PKCS11_PAL_Initialize( void )
 {
     CK_RV xResult = CKR_OK;
-    CRYPTO_Init();
+    mbedtls_threading_set_alt( mbedtls_platform_mutex_init,
+                               mbedtls_platform_mutex_free,
+                               mbedtls_platform_mutex_lock,
+                               mbedtls_platform_mutex_unlock );
 
     if( !mflash_is_initialized() )
     {

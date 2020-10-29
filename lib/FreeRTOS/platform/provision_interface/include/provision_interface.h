@@ -24,8 +24,8 @@
  */
 
 /**
- * @file core_pkcs11.c
- * @brief corePKCS11 Interface.
+ * @file provision_interface.h
+ * @brief Device provisioning interface.
  *
  * This file defines an interface for provisioning over a UART.
  */
@@ -34,5 +34,6 @@
 #define _PROVISION_INTERFACE_H_
 
 void vUartProvision( void );
-
+CK_RV ulGetThingName( char ** pcThingName, uint32_t * ulThingNameSize );
+CK_RV ulGetThingEndpoint( char ** pcThingEndpoint, uint32_t * ulThingEndpointSize );
 #endif

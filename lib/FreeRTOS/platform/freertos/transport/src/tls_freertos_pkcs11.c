@@ -28,6 +28,18 @@
  * PKCS #11 when using TLS.
  */
 
+#include "logging_levels.h"
+
+#ifndef LIBRARY_LOG_NAME
+    #define LIBRARY_LOG_NAME    "TLS_PKCS"
+#endif
+
+#ifndef LIBRARY_LOG_LEVEL
+    #define LIBRARY_LOG_LEVEL    LOG_DEBUG
+#endif
+
+#include "logging_stack.h"
+
 /* Standard includes. */
 #include <string.h>
 
@@ -48,10 +60,13 @@
 #include "mbedtls_error.h"
 
 /* PKCS #11 includes. */
-#include "iot_pkcs11_config.h"
-#include "iot_pkcs11.h"
+#include "core_pkcs11_config.h"
+#include "core_pkcs11.h"
 #include "pkcs11.h"
-#include "iot_pki_utils.h"
+#include "core_pki_utils.h"
+
+/* NXP Console Logging. */
+#include "fsl_debug_console.h"
 
 /*-----------------------------------------------------------*/
 
@@ -188,6 +203,23 @@ static int32_t privateKeySigningCallback( void * pvContext,
 
 
 /*-----------------------------------------------------------*/
+
+#ifdef MBEDTLS_DEBUG_C
+    static void prvTlsDebugPrint( void * ctx,
+                                  int lLevel,
+                                  const char * pcFile,
+                                  int lLine,
+                                  const char * pcStr )
+    {
+        /* Unused parameters. */
+        ( void ) ctx;
+        ( void ) pcFile;
+        ( void ) lLine;
+
+        /* Send the debug string to the portable logger. */
+        PRINTF( "mbedTLS: |%d| %s", lLevel, pcStr );
+    }
+#endif /* ifdef MBEDTLS_DEBUG_C */
 
 static void sslContextInit( SSLContext_t * pSslContext )
 {
@@ -392,6 +424,14 @@ static TlsTransportStatus_t tlsSetup( NetworkContext_t * pNetworkContext,
             }
         }
     }
+
+    #ifdef MBEDTLS_DEBUG_C
+
+        /* If mbedTLS is being compiled with debug support, assume that the
+         * runtime configuration should use verbose output. */
+        mbedtls_ssl_conf_dbg( &( pNetworkContext->sslContext.config ), prvTlsDebugPrint, NULL );
+        mbedtls_debug_set_threshold( 3 );
+    #endif
 
     if( returnStatus == TLS_TRANSPORT_SUCCESS )
     {
@@ -855,10 +895,8 @@ void TLS_FreeRTOS_Disconnect( NetworkContext_t * pNetworkContext )
     else
     {
         /* WANT_READ and WANT_WRITE can be ignored. Logging for debugging purposes. */
-        LogInfo( ( "(Network connection %p) TLS close-notify sent; ",
-                   "received %s as the TLS status can be ignored for close-notify."
-                   ( tlsStatus == MBEDTLS_ERR_SSL_WANT_READ ) ? "WANT_READ" : "WANT_WRITE",
-                   pNetworkContext ) );
+        LogInfo( ( "TLS close-notify sent received %s as the TLS status can be ignored for close-notify.",
+                   ( tlsStatus == MBEDTLS_ERR_SSL_WANT_READ ) ? "WANT_READ" : "WANT_WRITE" ) );
     }
 
     /* Call socket shutdown function to close connection. */

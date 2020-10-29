@@ -1,4 +1,4 @@
-<#if memory.name=="SRAMX">
+<#if memory.name=="SRAM_0_1_2_3">
         */mflash_drv.o(.text .text* .rodata .rodata*)
         */fsl_spifi.o(.text .text* .rodata .rodata*)
         */bignum.o(.text .text* .rodata .rodata*)
