@@ -115,6 +115,8 @@ int main(void)
     /* Init board hardware. */
     CLOCK_EnableClock(kCLOCK_InputMux);
 
+    vTraceEnable( TRC_START );
+
     /* attach 12 MHz clock to FLEXCOMM0 (debug console) */
     CLOCK_AttachClk(BOARD_DEBUG_UART_CLK_ATTACH);
 
@@ -125,6 +127,8 @@ int main(void)
 
     /* Provision certificates over UART. */
     vUartProvision();
+
+
 
     FreeRTOS_IPInit( ucIPAddress, ucNetMask, ucGatewayAddress, ucDNSServerAddress, ucMACAddress );
 

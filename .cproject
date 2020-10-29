@@ -111,6 +111,8 @@
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/lib/nxp/component/uart}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/lib/FreeRTOS/FreeRTOS-Plus-TCP/include}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/lib/FreeRTOS/FreeRTOS-Plus-TCP/portable/Compiler/GCC}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/lib/FreeRTOS/FreeRTOS-Plus-Trace/Include}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/lib/FreeRTOS/FreeRTOS-Plus-Trace/config}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/lib/FreeRTOS/Logging}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/lib/FreeRTOS/provision/include}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/lib/FreeRTOS/provision_interface/include}&quot;"/>
@@ -300,14 +302,14 @@
 							</tool>
 						</toolChain>
 					</folderInfo>
-					<folderInfo id="com.crt.advproject.config.exe.debug.1406489753.812490645" name="/" resourcePath="lib/mbedtls/include">
-						<toolChain id="com.crt.advproject.toolchain.exe.debug.614737521" name="NXP MCU Tools" superClass="com.crt.advproject.toolchain.exe.debug" unusedChildren="">
-							<tool id="com.crt.advproject.cpp.exe.debug.1940356177" name="MCU C++ Compiler" superClass="com.crt.advproject.cpp.exe.debug.1232409167"/>
-							<tool id="com.crt.advproject.gcc.exe.debug.1896684092" name="MCU C Compiler" superClass="com.crt.advproject.gcc.exe.debug.1153005221"/>
-							<tool id="com.crt.advproject.gas.exe.debug.1066952242" name="MCU Assembler" superClass="com.crt.advproject.gas.exe.debug.1018475423"/>
-							<tool id="com.crt.advproject.link.cpp.exe.debug.186449766" name="MCU C++ Linker" superClass="com.crt.advproject.link.cpp.exe.debug.2053889555"/>
-							<tool id="com.crt.advproject.link.exe.debug.16534723" name="MCU Linker" superClass="com.crt.advproject.link.exe.debug.1765791898"/>
-							<tool id="com.crt.advproject.tool.debug.debug.556660936" name="MCU Debugger" superClass="com.crt.advproject.tool.debug.debug.774817882"/>
+					<folderInfo id="com.crt.advproject.config.exe.debug.1406489753.1766451054" name="/" resourcePath="lib/FreeRTOS/FreeRTOS-Plus-Trace/streamports">
+						<toolChain id="com.crt.advproject.toolchain.exe.debug.1023155205" name="NXP MCU Tools" superClass="com.crt.advproject.toolchain.exe.debug" unusedChildren="">
+							<tool id="com.crt.advproject.cpp.exe.debug.511392754" name="MCU C++ Compiler" superClass="com.crt.advproject.cpp.exe.debug.1232409167"/>
+							<tool id="com.crt.advproject.gcc.exe.debug.1914201573" name="MCU C Compiler" superClass="com.crt.advproject.gcc.exe.debug.1153005221"/>
+							<tool id="com.crt.advproject.gas.exe.debug.1561679274" name="MCU Assembler" superClass="com.crt.advproject.gas.exe.debug.1018475423"/>
+							<tool id="com.crt.advproject.link.cpp.exe.debug.928436288" name="MCU C++ Linker" superClass="com.crt.advproject.link.cpp.exe.debug.2053889555"/>
+							<tool id="com.crt.advproject.link.exe.debug.1260687889" name="MCU Linker" superClass="com.crt.advproject.link.exe.debug.1765791898"/>
+							<tool id="com.crt.advproject.tool.debug.debug.671908167" name="MCU Debugger" superClass="com.crt.advproject.tool.debug.debug.774817882"/>
 						</toolChain>
 					</folderInfo>
 					<sourceEntries>
@@ -316,6 +318,7 @@
 						<entry excluding="heap_5.c|heap_3.c|heap_2.c|heap_1.c" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="lib/FreeRTOS/FreeRTOS-Kernel/portable/MemMang"/>
 						<entry excluding="portable/BufferManagement/BufferAllocation_2.c|portable/Compiler|portable/NetworkInterface|test" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="lib/FreeRTOS/FreeRTOS-Plus-TCP"/>
 						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="lib/FreeRTOS/FreeRTOS-Plus-TCP/portable/NetworkInterface/LPC54018"/>
+						<entry excluding="streamports" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="lib/FreeRTOS/FreeRTOS-Plus-Trace"/>
 						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="lib/FreeRTOS/Logging"/>
 						<entry excluding="test" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="lib/FreeRTOS/coreMQTT"/>
 						<entry excluding="mbedtls/visualc|mbedtls/tests|mbedtls/scripts|mbedtls/programs" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="lib/FreeRTOS/corePKCS11/3rdparty"/>
