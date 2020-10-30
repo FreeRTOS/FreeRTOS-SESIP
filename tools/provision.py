@@ -91,16 +91,22 @@ class UartInterface():
         read_string = ""
         read_length = -1
         read_line = ""
+        decoded_char = ""
 
         while True:
             if (stopper in read_string) or (length > 0 and read_length >= length):
                 break
 
             c = self.serial.read(size=1)
-            read_string += c.decode("ascii")
-            read_line += c.decode("ascii")
-            read_length += 1
+            try:
+                decoded_character = c.decode("ascii")
+            except UnicodeDecodeError as e:
+                decoded_character = hex(int(str(ord(c))))
 
+            read_string += decoded_character
+            read_line += decoded_character            
+
+            read_length += 1
             if c == b"\n":
                 print(read_line)
                 read_line = ""
