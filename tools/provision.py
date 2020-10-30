@@ -145,12 +145,10 @@ def provision(stream_interface, thing_name):
 
     device_output = stream_interface.read("y/n", -1)
     if "Device was already provisioned" in device_output:
-        user_input = input()
-        stream_interface.write(user_input)
+        stream_interface.write('y')
         device_output = stream_interface.read("y/n", -1)
     if "Do you want to provision the device" in device_output:
-        user_input = input()
-        stream_interface.write(user_input)
+        stream_interface.write('y')
         device_output = stream_interface.read("read thing name", -1)
         stream_interface.write(thing_name)
         device_output = stream_interface.read("read thing endpoint", -1)
