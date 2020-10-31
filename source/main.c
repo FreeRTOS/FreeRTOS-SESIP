@@ -37,6 +37,7 @@
 #include "pkcs11.h"
 
 #include "user/demo-restrictions.h"
+#include "aws_iot_ota_mqtt.h"
 
 /*******************************************************************************
  * Definitions
@@ -158,8 +159,6 @@ int main( void )
     /* Provision certificates over UART. */
     vUartProvision();
 
-
-
     FreeRTOS_IPInit( ucIPAddress, ucNetMask, ucGatewayAddress, ucDNSServerAddress, ucMACAddress );
 
     if( xTaskCreate( hello_task, "Hello_task", 2048, NULL, hello_task_PRIORITY | portPRIVILEGE_BIT, NULL ) !=
@@ -191,6 +190,12 @@ void eventCallback( MQTTContext_t * pContext,
                     MQTTPacketInfo_t * pPacketInfo,
                     MQTTDeserializedInfo_t * pDeserializedInfo )
 {
+
+#if( OTA_UPDATE_ENABLED == 1 )
+
+	vOTAMQTTEventCallback(pContext, pPacketInfo, pDeserializedInfo );
+#endif
+
 }
 
 
@@ -201,6 +206,7 @@ static void hello_task( void * pvParameters )
     MQTTFixedBuffer_t fixedBuffer;
     uint8_t buffer[ 1024 ];
     MQTTStatus_t status;
+    TlsTransportStatus_t transportStatus;
     NetworkContext_t someNetworkInterface = { 0 };
     MQTTConnectInfo_t connectInfo;
     bool sessionPresent = true;
@@ -254,15 +260,20 @@ static void hello_task( void * pvParameters )
         connectInfo.passwordLength = strlen( connectInfo.pPassword );
 
         FreeRTOS_debug_printf( ( "Attempting a connection\n" ) );
-        TlsTransportStatus_t status = TLS_FreeRTOS_Connect( mqttContext.transportInterface.pNetworkContext, pcEndpoint, 8883, &xNetworkCredentials, 36000, 36000 );
+        transportStatus = TLS_FreeRTOS_Connect( mqttContext.transportInterface.pNetworkContext, pcEndpoint, 8883, &xNetworkCredentials, 36000, 36000 );
 
-        if( TLS_TRANSPORT_SUCCESS == status )
+        if( TLS_TRANSPORT_SUCCESS == transportStatus )
         {
             /* Send the connect packet. Use 100 ms as the timeout to wait for the CONNACK packet. */
             status = MQTT_Connect( &mqttContext, &connectInfo, NULL, 100, &sessionPresent );
 
             if( status == MQTTSuccess )
             {
+
+                #if( OTA_UPDATE_ENABLED == 1 )
+                    xCreateOTAUpdateTask( &mqttContext );
+                #endif
+
                 for( ; ; )
                 {
                     static int counter = 0;

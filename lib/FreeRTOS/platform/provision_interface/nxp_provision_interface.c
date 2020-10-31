@@ -228,7 +228,7 @@ static void prvProvision( void )
 
         if( pucCert != NULL )
         {
-            LogInfo( ( "Successfully read UART cert from UART. Will now try to provision certificate with PKCS #11." ) );
+            LogInfo( ( "Successfully read cert from UART. Will now try to provision certificate with PKCS #11." ) );
             LogInfo( ( "Received:\n %s", pucCert ) );
             xProvisionCert( pucCert, ulCertSize );
             vPortFree( pucCert );
@@ -239,6 +239,7 @@ static void prvProvision( void )
         LogInfo( ( "Will not provision the device." ) );
     }
 }
+
 void vUartProvision( void )
 {
     CK_RV xResult = CKR_OK;
