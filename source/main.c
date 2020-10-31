@@ -36,6 +36,8 @@
 #include "core_pkcs11.h"
 #include "pkcs11.h"
 
+#include "user/demo-restrictions.h"
+
 /*******************************************************************************
  * Definitions
  ******************************************************************************/
@@ -151,6 +153,7 @@ int main( void )
     BOARD_InitBootClocks();
     BOARD_InitDebugConsole();
     CRYPTO_InitHardware();
+    printRegions();
 
     /* Provision certificates over UART. */
     vUartProvision();
@@ -159,21 +162,20 @@ int main( void )
 
     FreeRTOS_IPInit( ucIPAddress, ucNetMask, ucGatewayAddress, ucDNSServerAddress, ucMACAddress );
 
-    if( xTaskCreate( hello_task, "Hello_task", 2048, NULL, hello_task_PRIORITY, NULL ) !=
+    if( xTaskCreate( hello_task, "Hello_task", 2048, NULL, hello_task_PRIORITY | portPRIVILEGE_BIT, NULL ) !=
         pdPASS )
     {
         PRINTF( "Hello Task creation failed!.\n" );
 
-        while( 1 )
-        {
-        }
+        while( 1 );
     }
+
+    xCreateRestrictedTasks( hello_task_PRIORITY );
+
 
     vTaskStartScheduler();
 
-    for( ; ; )
-    {
-    }
+    while(1);
 }
 
 /*!

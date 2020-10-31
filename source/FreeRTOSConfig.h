@@ -61,8 +61,12 @@
 #define configENABLE_BACKWARD_COMPATIBILITY     0
 #define configNUM_THREAD_LOCAL_STORAGE_POINTERS 5
 
+/* Ensure that system calls can only be made from kernel code. */
+#define configENFORCE_SYSTEM_CALLS_FROM_KERNEL_ONLY             1
+
 /* Used memory allocation (heap_x.c) */
 #define configFRTOS_MEMORY_SCHEME               4
+
 /* Tasks.c additions (e.g. Thread Aware Debug capability) */
 #define configINCLUDE_FREERTOS_TASK_C_ADDITIONS_H 1
 

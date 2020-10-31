@@ -101,7 +101,7 @@
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/lib/nxp/device}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/lib/nxp/CMSIS}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/lib/FreeRTOS/FreeRTOS-Kernel/include}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/lib/FreeRTOS/FreeRTOS-Kernel/portable/GCC/ARM_CM4F}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/lib/FreeRTOS/FreeRTOS-Kernel/portable/GCC/ARM_CM4_MPU}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/lib/FreeRTOS/coreMQTT/source/include}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/lib/FreeRTOS/platform/include}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/lib/FreeRTOS/platform/freertos/transport/include}&quot;"/>
@@ -265,9 +265,9 @@
 								<option id="gnu.c.link.option.debugging.codecov.167450832" name="Generate gcov information (-ftest-coverage -fprofile-arcs)" superClass="gnu.c.link.option.debugging.codecov" useByScannerDiscovery="false"/>
 								<option id="com.crt.advproject.link.gcc.lto.977541220" name="Enable Link-time optimization (-flto)" superClass="com.crt.advproject.link.gcc.lto" useByScannerDiscovery="false"/>
 								<option id="com.crt.advproject.link.gcc.lto.optmization.level.814912824" name="Link-time optimization level" superClass="com.crt.advproject.link.gcc.lto.optmization.level" useByScannerDiscovery="false"/>
-								<option id="com.crt.advproject.link.manage.1499260046" name="Manage linker script" superClass="com.crt.advproject.link.manage" useByScannerDiscovery="false" value="true" valueType="boolean"/>
-								<option id="com.crt.advproject.link.script.1475125758" name="Linker script" superClass="com.crt.advproject.link.script" useByScannerDiscovery="false" value="lpc54018iotmodule_freertos_sesip_Debug.ld" valueType="string"/>
-								<option id="com.crt.advproject.link.scriptdir.103534504" name="Script path" superClass="com.crt.advproject.link.scriptdir" useByScannerDiscovery="false" value="" valueType="string"/>
+								<option id="com.crt.advproject.link.manage.1499260046" name="Manage linker script" superClass="com.crt.advproject.link.manage" useByScannerDiscovery="false" value="false" valueType="boolean"/>
+								<option id="com.crt.advproject.link.script.1475125758" name="Linker script" superClass="com.crt.advproject.link.script" useByScannerDiscovery="false" value="Demo.ld" valueType="string"/>
+								<option id="com.crt.advproject.link.scriptdir.103534504" name="Script path" superClass="com.crt.advproject.link.scriptdir" useByScannerDiscovery="false" value="../source" valueType="string"/>
 								<option id="com.crt.advproject.link.crpenable.1851452392" name="Enable automatic placement of Code Read Protection field in image" superClass="com.crt.advproject.link.crpenable" useByScannerDiscovery="false"/>
 								<option id="com.crt.advproject.link.flashconfigenable.949267911" name="Enable automatic placement of Flash Configuration field in image" superClass="com.crt.advproject.link.flashconfigenable" useByScannerDiscovery="false" value="true" valueType="boolean"/>
 								<option id="com.crt.advproject.link.ecrp.279997448" name="Enhanced CRP" superClass="com.crt.advproject.link.ecrp" useByScannerDiscovery="false"/>
@@ -303,7 +303,8 @@
 					<fileInfo id="com.crt.advproject.config.exe.debug.1406489753.936120065" name="mbedtls_error.h" rcbsApplicability="disable" resourcePath="lib/FreeRTOS/corePKCS11/3rdparty/mbedtls_utils/mbedtls_error.h" toolsToInvoke=""/>
 					<sourceEntries>
 						<entry excluding="portable" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="lib/FreeRTOS/FreeRTOS-Kernel"/>
-						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="lib/FreeRTOS/FreeRTOS-Kernel/portable/GCC/ARM_CM4F"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="lib/FreeRTOS/FreeRTOS-Kernel/portable/Common"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="lib/FreeRTOS/FreeRTOS-Kernel/portable/GCC/ARM_CM4_MPU"/>
 						<entry excluding="heap_5.c|heap_3.c|heap_2.c|heap_1.c" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="lib/FreeRTOS/FreeRTOS-Kernel/portable/MemMang"/>
 						<entry excluding="portable/BufferManagement/BufferAllocation_2.c|portable/Compiler|portable/NetworkInterface|test" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="lib/FreeRTOS/FreeRTOS-Plus-TCP"/>
 						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="lib/FreeRTOS/FreeRTOS-Plus-TCP/portable/NetworkInterface/LPC54018"/>

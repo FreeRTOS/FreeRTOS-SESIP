@@ -97,7 +97,7 @@
  * FreeRTOSConfig.h, not FreeRTOSIPConfig.h. Consideration needs to be given as to
  * the priority assigned to the task executing the IP stack relative to the
  * priority assigned to tasks that use the IP stack. */
-#define ipconfigIP_TASK_PRIORITY                   ( configMAX_PRIORITIES - 2 )
+#define ipconfigIP_TASK_PRIORITY                   ( ( configMAX_PRIORITIES - 2 ) | portPRIVILEGE_BIT )
 
 /* The size, in words (not bytes), of the stack allocated to the FreeRTOS+TCP
  * task.  This setting is less important when the FreeRTOS Win32 simulator is used
