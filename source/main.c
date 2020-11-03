@@ -38,16 +38,34 @@
 
 #include "user/demo-restrictions.h"
 #include "aws_iot_ota_mqtt.h"
+#include "ota_update.h"
 
 /*******************************************************************************
  * Definitions
  ******************************************************************************/
+/**
+ * @brief Milliseconds per second.
+ */
+#define MILLISECONDS_PER_SECOND                           ( 1000U )
+
+/**
+ * @brief Milliseconds per FreeRTOS tick.
+ */
+#define MILLISECONDS_PER_TICK                             ( MILLISECONDS_PER_SECOND / configTICK_RATE_HZ )
 
 static const uint8_t ucIPAddress[ 4 ] = { 192, 168, 1, 43 };
 static const uint8_t ucNetMask[ 4 ] = { 255, 255, 255, 0 };
 static const uint8_t ucGatewayAddress[ 4 ] = { 192, 168, 1, 1 };
 static const uint8_t ucDNSServerAddress[ 4 ] = { 192, 168, 1, 1 };
 static const uint8_t ucMACAddress[ 6 ] = { 0xDE, 0xAD, 0x00, 0xBE, 0xEF, 0x01 };
+
+/**
+ * @brief Global entry time into the application to use as a reference timestamp
+ * in the #prvGetTimeMs function. #prvGetTimeMs will always return the difference
+ * between the current time and the global entry time. This will reduce the chances
+ * of overflow for the 32 bit unsigned integer used for holding the timestamp.
+ */
+static uint32_t ulGlobalEntryTimeMs;
 
 #define democonfigROOT_CA_PEM                                            \
     ""                                                                   \
@@ -178,12 +196,25 @@ int main( void )
 }
 
 /*!
- * @brief Task responsible for printing of "Hello world." message.
+ * @brief Function to return current timestamp used by MQTT library.
  */
 
 uint32_t getTimeStampMs()
 {
-    return 0;
+	TickType_t xTickCount = 0;
+	uint32_t ulTimeMs = 0UL;
+
+	/* Get the current tick count. */
+	xTickCount = xTaskGetTickCount();
+
+	/* Convert the ticks to milliseconds. */
+	ulTimeMs = ( uint32_t ) xTickCount * MILLISECONDS_PER_TICK;
+
+	/* Reduce ulGlobalEntryTimeMs from obtained time so as to always return the
+	 * elapsed time in the application. */
+	ulTimeMs = ( uint32_t ) ( ulTimeMs - ulGlobalEntryTimeMs );
+
+	return ulTimeMs;
 }
 
 void eventCallback( MQTTContext_t * pContext,
@@ -233,6 +264,8 @@ static void hello_task( void * pvParameters )
     transport.pNetworkContext = &someNetworkInterface;
     transport.send = TLS_FreeRTOS_send;
     transport.recv = TLS_FreeRTOS_recv;
+
+    ulGlobalEntryTimeMs = getTimeStampMs();
 
     /* Set buffer members. */
     fixedBuffer.pBuffer = buffer;
@@ -296,7 +329,7 @@ static void hello_task( void * pvParameters )
 
                     MQTT_Publish( &mqttContext, &info, 1 );
 
-                    vTaskDelay( pdMS_TO_TICKS( 10000 ) );
+                    MQTT_ProcessLoop( &mqttContext, 10000 );
                 }
 
                 HeapStats_t heap_stats;

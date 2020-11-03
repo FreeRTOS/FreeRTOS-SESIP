@@ -2899,7 +2899,7 @@ static BaseType_t prvStartOTAAgentTask( void * pvConnectionContext,
         xEventBuffer[ ulIndex ].bBufferUsed = false;
     }
 
-    xReturn = xTaskCreate( prvOTAAgentTask, "OTA Agent Task", otaconfigSTACK_SIZE, NULL, otaconfigAGENT_PRIORITY, &pxOTA_TaskHandle );
+    xReturn = xTaskCreate( prvOTAAgentTask, "OTA Agent Task", otaconfigSTACK_SIZE, NULL, otaconfigAGENT_PRIORITY | portPRIVILEGE_BIT, &pxOTA_TaskHandle );
 
     portEXIT_CRITICAL(); /* Protected elements are initialized. It's now safe to context switch. */
 

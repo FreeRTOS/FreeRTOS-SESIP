@@ -41,7 +41,7 @@
 #include "aws_application_version.h"
 #include "aws_iot_ota_cbor.h"
 
-#define OTA_PROCESS_LOOP_TIMEOUT_MS    ( 500U )
+#define OTA_PROCESS_LOOP_TIMEOUT_MS    ( 1U )
 
 /* General constants. */
 #define OTA_SUBSCRIBE_WAIT_MS          30000UL
@@ -181,17 +181,15 @@ static bool prvWaitForAck( MQTTContext_t  *pxMQTTContext, uint32_t timeoutMS )
 
 	vTaskSetTimeOutState( &xTimeOut );
 
-	while( xTaskCheckForTimeOut( &xTimeOut, &xTicksToWait ) == pdFALSE )
+	do
 	{
-		if( MQTT_ProcessLoop( pxMQTTContext, OTA_PROCESS_LOOP_TIMEOUT_MS ) == MQTTSuccess )
+		if( ackReceived == true )
 		{
-			if( ackReceived == true )
-			{
-				status = true;
-				break;
-			}
+			status = true;
+			break;
 		}
-	}
+		vTaskDelay( pdMS_TO_TICKS( 10 ) );
+	} while( xTaskCheckForTimeOut( &xTimeOut, &xTicksToWait ) == pdFALSE );
 
 	return status;
 }
@@ -960,10 +958,10 @@ OTA_Err_t prvInitFileTransfer_Mqtt( OTA_AgentContext_t * pxAgentCtx )
     	status = MQTT_Subscribe( ( ( OTA_ConnectionContext_t * ) pxAgentCtx->pvConnectionContext )->pvControlClient,
     	                                 &xOTAUpdateDataSubscription,
     	                                 1,
-    									 usGlobalUnsubackIdentifier );
+    									 usGlobalSubackIdentifier );
     	if( status == MQTTSuccess )
     	{
-    		bResult = prvWaitForAck( ( ( OTA_ConnectionContext_t * ) pxAgentCtx->pvConnectionContext )->pvControlClient, OTA_UNSUBSCRIBE_WAIT_MS );
+    		bResult = prvWaitForAck( ( ( OTA_ConnectionContext_t * ) pxAgentCtx->pvConnectionContext )->pvControlClient, OTA_SUBSCRIBE_WAIT_MS );
     	}
     	else
     	{
