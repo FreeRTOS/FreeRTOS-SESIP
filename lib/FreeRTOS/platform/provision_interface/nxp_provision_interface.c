@@ -39,22 +39,23 @@
 #include "task.h"
 #include "provision_interface.h"
 #include "provision.h"
+#include "core_pkcs11_config.h"
 #include "core_pkcs11.h"
 #include "core_pkcs11_pal.h"
 
-#define FILENAME_AWS_THING_NAME "aws_thing_name.dat"
-#define FILENAME_AWS_ENDPOINT   "aws_endpoint.dat"
+#define FILENAME_AWS_THING_NAME      "aws_thing_name.dat"
+#define FILENAME_AWS_ENDPOINT        "aws_endpoint.dat"
 
-#define MAX_LENGTH_AWS_ENDPOINT   64
-#define MAX_LENGTH_AWS_THING_NAME 32
+#define MAX_LENGTH_AWS_ENDPOINT      64
+#define MAX_LENGTH_AWS_THING_NAME    32
 
 /*
  * @brief Buffer size for buffer that will contain certificate
  *
- * @note Should need waaaaaaaaay less bytes, since we are only doing ECDSA currently, but an RSA cert will probably
+ * @note Should need less bytes, since we are only doing ECDSA currently, but an RSA cert will probably
  * be around 4096 bytes, so we will leave some buffer room.
  */
-#define CERTIFICATE_SIZE    5000
+#define CERTIFICATE_SIZE             5000
 
 const char pucTerminaterString[] = ">>>>>>";
 
@@ -135,6 +136,7 @@ static uint8_t * prvReadCertifcate( uint32_t * pulSize )
 static CK_RV xDestroyCertKeys( void )
 {
     CK_RV xResult = CKR_OK;
+
     xResult = xDestroyCryptoObjects();
     return xResult;
 }
@@ -143,24 +145,25 @@ static CK_RV prvProvisionThingEndpoint( void )
 {
     CK_RV xResult = CKR_OK;
     CK_ULONG ulSize = 0;
-    CK_BYTE_PTR pxThingEndpoint[ MAX_LENGTH_AWS_ENDPOINT ] = { 0 };
+    CK_BYTE pxThingEndpoint[ MAX_LENGTH_AWS_ENDPOINT ] = { 0 };
     CK_ATTRIBUTE xLabel;
     CK_OBJECT_HANDLE xHandle = CK_INVALID_HANDLE;
-    
-    
-    LogInfo( ("Ready to read thing endpoint." ) );
 
-    ulSize = xReadInput( pxThingEndpoint, MAX_LENGTH_AWS_ENDPOINT, pucTerminaterString, sizeof( pucTerminaterString ) );
+
+    LogInfo( ( "Ready to read thing endpoint." ) );
+
+    ulSize = xReadInput( ( uint8_t * ) pxThingEndpoint, ( uint32_t ) MAX_LENGTH_AWS_ENDPOINT, pucTerminaterString, sizeof( pucTerminaterString ) );
 
     if( ulSize > 0 )
     {
         xLabel.type = CKA_LABEL;
         xLabel.pValue = FILENAME_AWS_ENDPOINT;
-        xLabel.ulValueLen = sizeof( FILENAME_AWS_ENDPOINT ); 
+        xLabel.ulValueLen = sizeof( FILENAME_AWS_ENDPOINT );
 
         LogInfo( ( "Saving thing endpoint: %s", pxThingEndpoint ) );
 
-        xHandle = PKCS11_PAL_SaveObject( &xLabel, pxThingEndpoint, ulSize );
+        xHandle = PKCS11_PAL_SaveObject( ( CK_ATTRIBUTE_PTR ) &xLabel, pxThingEndpoint, ulSize );
+
         if( xHandle == CK_INVALID_HANDLE )
         {
             LogError( ( "Failed to save thing endpoint. Error storing to flash, error code: %0x.", xResult ) );
@@ -174,15 +177,55 @@ static CK_RV prvProvisionThingEndpoint( void )
     return xResult;
 }
 
+static CK_RV prvProvisionOtaSigning( void )
+{
+    CK_RV xResult = CKR_OK;
+    CK_ULONG ulSize = 0;
+    CK_OBJECT_HANDLE xHandle = CK_INVALID_HANDLE;
+    CK_BYTE_PTR pxOtaCert = NULL;
+
+    pxOtaCert = pvPortMalloc( CERTIFICATE_SIZE );
+
+    if( pxOtaCert != NULL )
+    {
+        LogInfo( ( "Ready to read OTA verification key." ) );
+
+        ulSize = xReadInput( pxOtaCert, CERTIFICATE_SIZE, pucTerminaterString, sizeof( pucTerminaterString ) );
+
+        if( ulSize > 0 )
+        {
+            xProvisionCert( pxOtaCert, ulSize, pkcs11configLABEL_CODE_VERIFICATION_KEY, sizeof( pkcs11configLABEL_CODE_VERIFICATION_KEY ) );
+
+            if( xResult != CKR_OK )
+            {
+                LogError( ( "Failed to save OTA verification key. Could not provision key." ) );
+            }
+        }
+        else
+        {
+            LogError( ( "Failed to save OTA verification key. Received no bytes over the UART." ) );
+        }
+    }
+    else
+    {
+        LogError( ( "Failed to allocate buffer to hold OTA verification key." ) );
+    }
+
+    vPortFree( pxOtaCert );
+
+
+    return xResult;
+}
+
 static CK_RV prvProvisionThingName( void )
 {
     CK_RV xResult = CKR_OK;
     CK_ULONG ulSize = 0;
-    CK_BYTE_PTR pxThingName[ MAX_LENGTH_AWS_THING_NAME ] = { 0 };
+    CK_BYTE pxThingName[ MAX_LENGTH_AWS_THING_NAME ] = { 0 };
     CK_ATTRIBUTE xLabel;
     CK_OBJECT_HANDLE xHandle = CK_INVALID_HANDLE;
 
-    LogInfo( ("Ready to read thing name." ) );
+    LogInfo( ( "Ready to read thing name." ) );
 
     ulSize = xReadInput( pxThingName, MAX_LENGTH_AWS_THING_NAME, pucTerminaterString, sizeof( pucTerminaterString ) );
 
@@ -190,11 +233,12 @@ static CK_RV prvProvisionThingName( void )
     {
         xLabel.type = CKA_LABEL;
         xLabel.pValue = FILENAME_AWS_THING_NAME;
-        xLabel.ulValueLen = sizeof( FILENAME_AWS_THING_NAME ); 
+        xLabel.ulValueLen = sizeof( FILENAME_AWS_THING_NAME );
 
         LogInfo( ( "Saving thing name: %s", pxThingName ) );
 
-        xHandle = PKCS11_PAL_SaveObject( &xLabel, pxThingName, ulSize );
+        xHandle = PKCS11_PAL_SaveObject( ( CK_ATTRIBUTE_PTR ) &xLabel, pxThingName, ulSize );
+
         if( xHandle == CK_INVALID_HANDLE )
         {
             LogError( ( "Failed to save thing name. Error storing to flash, error code: %0x.", xResult ) );
@@ -223,6 +267,7 @@ static void prvProvision( void )
         LogInfo( ( "Received y, will provision the device." ) );
         prvProvisionThingName();
         prvProvisionThingEndpoint();
+        prvProvisionOtaSigning();
         prvUploadCsr();
         pucCert = prvReadCertifcate( &ulCertSize );
 
@@ -230,7 +275,7 @@ static void prvProvision( void )
         {
             LogInfo( ( "Successfully read cert from UART. Will now try to provision certificate with PKCS #11." ) );
             LogInfo( ( "Received:\n %s", pucCert ) );
-            xProvisionCert( pucCert, ulCertSize );
+            xProvisionCert( pucCert, ulCertSize, pkcs11configLABEL_DEVICE_CERTIFICATE_FOR_TLS, sizeof( pkcs11configLABEL_DEVICE_CERTIFICATE_FOR_TLS ) );
             vPortFree( pucCert );
         }
     }
@@ -270,7 +315,8 @@ void vUartProvision( void )
     }
 }
 
-CK_RV ulGetThingName( char ** pcThingName, uint32_t * ulThingNameSize )
+CK_RV ulGetThingName( char ** pcThingName,
+                      uint32_t * ulThingNameSize )
 {
     static char pxThingName[ MAX_LENGTH_AWS_THING_NAME ] = { 0 };
     static CK_ULONG ulSize = 0;
@@ -280,9 +326,10 @@ CK_RV ulGetThingName( char ** pcThingName, uint32_t * ulThingNameSize )
     CK_OBJECT_HANDLE xHandle = CK_INVALID_HANDLE;
     CK_RV xResult = CKR_OK;
 
-    if( pxThingName[0] == 0x00 )
+    if( pxThingName[ 0 ] == 0x00 )
     {
         xHandle = PKCS11_PAL_FindObject( FILENAME_AWS_THING_NAME, sizeof( FILENAME_AWS_THING_NAME ) );
+
         if( xHandle != CK_INVALID_HANDLE )
         {
             xResult = PKCS11_PAL_GetObjectValue( xHandle, &pxTempBuf, &ulSize, &xIsPrivate );
@@ -305,7 +352,8 @@ CK_RV ulGetThingName( char ** pcThingName, uint32_t * ulThingNameSize )
     return xResult;
 }
 
-CK_RV ulGetThingEndpoint( char ** pcThingEndpoint, uint32_t * ulThingEndpointSize )
+CK_RV ulGetThingEndpoint( char ** pcThingEndpoint,
+                          uint32_t * ulThingEndpointSize )
 {
     static char pxThingEndpoint[ MAX_LENGTH_AWS_ENDPOINT ] = { 0 };
     static CK_ULONG ulSize = 0;
@@ -315,9 +363,10 @@ CK_RV ulGetThingEndpoint( char ** pcThingEndpoint, uint32_t * ulThingEndpointSiz
     CK_OBJECT_HANDLE xHandle = CK_INVALID_HANDLE;
     CK_RV xResult = CKR_OK;
 
-    if( pxThingEndpoint[0] == 0x00 )
+    if( pxThingEndpoint[ 0 ] == 0x00 )
     {
         xHandle = PKCS11_PAL_FindObject( FILENAME_AWS_ENDPOINT, sizeof( FILENAME_AWS_ENDPOINT ) );
+
         if( xHandle != CK_INVALID_HANDLE )
         {
             xResult = PKCS11_PAL_GetObjectValue( xHandle, &pxTempBuf, &ulSize, &xIsPrivate );

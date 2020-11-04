@@ -31,7 +31,9 @@
 uint8_t * vCreateCsr( void );
 
 CK_RV xProvisionCert( CK_BYTE_PTR xCert,
-                      CK_ULONG xCertLen );
+                      CK_ULONG xCertLen, 
+                      CK_BYTE_PTR xCertLabel,
+                      CK_ULONG xCertLabelLen );
 
 CK_RV xCheckIfProvisioned( void );
 

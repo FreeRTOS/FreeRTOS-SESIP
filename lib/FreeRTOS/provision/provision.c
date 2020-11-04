@@ -220,7 +220,7 @@ static int32_t privateKeySigningCallback( void * pvContext,
     if( CKR_OK == xResult )
     {
         xResult = pxP11FunctionList->C_Sign( xSession,
-                                             pucHash,
+                                             ( unsigned char * ) pucHash,
                                              xHashLen,
                                              pucSig,
                                              ( CK_ULONG_PTR ) pxSigLen );
@@ -507,7 +507,9 @@ uint8_t * vCreateCsr( void )
 }
 
 CK_RV xProvisionCert( CK_BYTE_PTR xCert,
-                      CK_ULONG xCertLen )
+                      CK_ULONG xCertLen,
+                      CK_BYTE_PTR xCertLabel,
+                      CK_ULONG xCertLabelLen )
 {
     CK_FUNCTION_LIST_PTR pxFunctionList;
     CK_RV xResult;
@@ -535,8 +537,8 @@ CK_RV xProvisionCert( CK_BYTE_PTR xCert,
     xCertificateTemplate.xValue.pValue = ( CK_VOID_PTR ) xCert;
     xCertificateTemplate.xValue.ulValueLen = ( CK_ULONG ) xCertLen;
     xCertificateTemplate.xLabel.type = CKA_LABEL;
-    xCertificateTemplate.xLabel.pValue = ( CK_VOID_PTR ) pkcs11configLABEL_DEVICE_CERTIFICATE_FOR_TLS;
-    xCertificateTemplate.xLabel.ulValueLen = strlen( pkcs11configLABEL_DEVICE_CERTIFICATE_FOR_TLS );
+    xCertificateTemplate.xLabel.pValue = xCertLabel;
+    xCertificateTemplate.xLabel.ulValueLen = strlen( xCertLabelLen );
     xCertificateTemplate.xCertificateType.type = CKA_CERTIFICATE_TYPE;
     xCertificateTemplate.xCertificateType.pValue = &xCertificateType;
     xCertificateTemplate.xCertificateType.ulValueLen = sizeof( CK_CERTIFICATE_TYPE );
@@ -697,3 +699,4 @@ CK_RV xDestroyCryptoObjects( void )
 
     return xResult;
 }
+/*-----------------------------------------------------------*/

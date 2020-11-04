@@ -27,6 +27,8 @@ prompt to reprovision, it will time out after a few seconds.
         * As an example, my NXP UART appears as **/dev/cu.usbmodemBSAZAQGQ2**
     * On Linux, it is the same as OSX, but the devices are named with a **tty** style, use `ls /dev/tty*`
     * On Windows, generally the device will be labelled as a COM port. The available COM ports can be checked by opening the device manager application.
+* OpenSSL
+    * OpenSSL is required to create a self-signed certificate and private key to be used by OTA. OpenSSL is commonly distributed with most operating systems, but can be found here https://www.openssl.org/.
 
 # Running the script
 To provision the device, simple run the script with the following commands:
