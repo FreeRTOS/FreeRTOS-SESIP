@@ -303,4 +303,6 @@ extern UBaseType_t uxRand();
 
 #define portINLINE                          __inline
 
+#define NETWORK_INTERFACE_RX_PRIORITY ((configMAX_PRIORITIES-1) | portPRIVILEGE_BIT)
+
 #endif /* FREERTOS_IP_CONFIG_H */
