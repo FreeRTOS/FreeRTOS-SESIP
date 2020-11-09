@@ -27,7 +27,7 @@
 #define OTA_UPDATE_H
 
 
-#define OTA_UPDATE_ENABLED   ( 0 )
+#define OTA_UPDATE_ENABLED   ( 1 )
 
 BaseType_t xCreateOTAUpdateTask( MQTTContext_t *pMQTTContext );
 
