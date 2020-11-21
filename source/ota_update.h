@@ -26,9 +26,30 @@
 #ifndef OTA_UPDATE_H
 #define OTA_UPDATE_H
 
+#include <stdint.h>
+#include "FreeRTOS.h"
 
 #define OTA_UPDATE_ENABLED   ( 1 )
 
-BaseType_t xCreateOTAUpdateTask( MQTTContext_t *pMQTTContext );
+/**
+ * @brief Function to start an OTA update task in the background.
+ * Prerequisite: A valid MQTT connection should be established with AWS IoT core and the context
+ * passed in as the parameter.
+ *
+ * @pram[in] pMQTTContext The context for MQTT connection with AWS IoT core.
+ * @return pdTRUE if the OTA update task was successfully created.
+ */
+
+BaseType_t xCreateOTAUpdateTask( void *pMQTTContext );
+
+
+/**
+ * @brief Validate the integrity of the new image to be activated.
+ * @param[in] pCertificatePath The file path for the certificate, This can be certificate slot label name in PKCS11.
+ * @param[in] pSignature  The signature for the image, received from server.
+ * @param[in] signatureLength Length of the signature.
+ */
+BaseType_t xValidateImageSignature( uint8_t * pFilePath, char *pCertificatePath, uint8_t *pSignature, size_t signatureLength );
+
 
 #endif

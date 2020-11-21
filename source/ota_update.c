@@ -38,6 +38,7 @@
 
 #include "aws_application_version.h"
 
+
 /**
  * @brief The delay used in the main OTA Demo task loop to periodically output the OTA
  * statistics like number of packets received, dropped, processed and queued per connection.
@@ -119,6 +120,26 @@ static void App_OTACompleteCallback( OTA_JobEvent_t eEvent )
     }
 }
 
+static OTA_Err_t  App_OTAACloseFileCallback( OTA_FileContext_t * context )
+{
+	OTA_Err_t status = kOTA_Err_None;
+
+	status = prvPAL_CloseFile( context );
+
+	if( status == kOTA_Err_None )
+	{
+		if( xValidateImageSignature( context->pucFilePath,
+				                     context->pucCertFilepath,
+									 context->pxSignature->ucData,
+									 context->pxSignature->usSize ) != pdTRUE )
+		{
+			status = kOTA_Err_SignatureCheckFailed;
+		}
+	}
+
+    return status;
+}
+
 
 void OTAUpdateTask( void * pvParameters )
 {
@@ -127,6 +148,7 @@ void OTAUpdateTask( void * pvParameters )
     char *pcThingName = NULL;
     uint32_t thingNameLength = 0;
     CK_RV status;
+    OTA_PAL_Callbacks_t appCallbacks = { 0 };
 
     status =  ulGetThingName( &pcThingName, &thingNameLength );
     if( status != CKR_OK )
@@ -136,6 +158,9 @@ void OTAUpdateTask( void * pvParameters )
     else
     {
     	(void) thingNameLength;
+
+    	appCallbacks.xCompleteCallback = App_OTACompleteCallback;
+    	appCallbacks.xCloseFile = App_OTAACloseFileCallback;
 
     	xOTAConnectionCtx.pvControlClient = pvParameters;
 
@@ -154,9 +179,9 @@ void OTAUpdateTask( void * pvParameters )
     		}
 
     		/* Initialize the OTA Agent , if it is resuming the OTA statistics will be cleared for new connection.*/
-    		OTA_AgentInit( ( void * ) ( &xOTAConnectionCtx ),
+    		OTA_AgentInit_internal( ( void * ) ( &xOTAConnectionCtx ),
     				( const uint8_t * ) pcThingName,
-					App_OTACompleteCallback,
+					&appCallbacks,
 					( TickType_t ) ~0 );
 
     		while( ( eState = OTA_GetAgentState() ) != eOTA_AgentState_Stopped ) // && _networkConnected )
@@ -171,7 +196,7 @@ void OTAUpdateTask( void * pvParameters )
     }
 }
 
-BaseType_t xCreateOTAUpdateTask( MQTTContext_t *pMQTTContext )
+BaseType_t xCreateOTAUpdateTask( void *pMQTTContext )
 {
    return xTaskCreate( OTAUpdateTask, "OTA_task", 2048, pMQTTContext, ota_update_task_PRIORITY | portPRIVILEGE_BIT, NULL );
 }

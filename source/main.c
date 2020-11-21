@@ -53,6 +53,16 @@
  */
 #define MILLISECONDS_PER_TICK                             ( MILLISECONDS_PER_SECOND / configTICK_RATE_HZ )
 
+
+/**
+ * @brief MQTT incoming buffer size.
+ * This is the buffer size to hold an incoming packet from MQTT connection. The
+ * buffer size should be set to maximum as required by all MQTT applications including OTA.
+ */
+
+#define MQTT_INCOMING_BUFFER_SIZE    ( 2048 )
+
+static uint8_t buffer[ MQTT_INCOMING_BUFFER_SIZE ];
 static const uint8_t ucIPAddress[ 4 ] = { 192, 168, 1, 43 };
 static const uint8_t ucNetMask[ 4 ] = { 255, 255, 255, 0 };
 static const uint8_t ucGatewayAddress[ 4 ] = { 192, 168, 1, 1 };
@@ -235,7 +245,7 @@ static void hello_task( void * pvParameters )
     MQTTContext_t mqttContext;
     TransportInterface_t transport;
     MQTTFixedBuffer_t fixedBuffer;
-    uint8_t buffer[ 1024 ];
+
     MQTTStatus_t status;
     TlsTransportStatus_t transportStatus;
     NetworkContext_t someNetworkInterface = { 0 };
@@ -269,7 +279,7 @@ static void hello_task( void * pvParameters )
 
     /* Set buffer members. */
     fixedBuffer.pBuffer = buffer;
-    fixedBuffer.size = 1024;
+    fixedBuffer.size = MQTT_INCOMING_BUFFER_SIZE;
 
     status = MQTT_Init( &mqttContext, &transport, getTimeStampMs, eventCallback, &fixedBuffer );
 

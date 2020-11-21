@@ -196,4 +196,31 @@ OTA_Err_t prvPAL_SetPlatformImageState( OTA_ImageState_t eState );
  */
 OTA_PAL_ImageState_t prvPAL_GetPlatformImageState( void );
 
+
+/**
+ * @brief Open the file in read mode.
+ * A valid file path will be provided in the context passed in as parameter.
+ * The function should fill in the required File Handle within the context parameter.
+ *
+ * @param[in] pContext Context for the file to be opened in read mode.
+ * @return kOTA_Err_NoFreeContext If the file is already opened for writing or reading.
+ *         kOTA_Err_None    If the file is opened for reading.
+ */
+OTA_Err_t prvPAL_OpenFileForRead( OTA_FileContext_t * const pContext );
+
+/**
+ * @brief Read block of data from a specified offeset within the image file.
+ * If the file context is null or path pointed to is invalid, return a negative value. Otherwise it reads upto
+ * specified block size from a specified offset within the file. It returns the number of bytes read, which is
+ * either equal to block size passed or less than block size if there is no enough bytes left.
+ *
+ * @param[in] pContext Context for the file
+ * @param[in] ulOffset Offset within the file.
+ * @param[out] pucData Buffer to store bytes read. It should be atleast usBlockSize in length.
+ * @param[in] usBlockSize Size of the block to be read.
+ * @return The number of bytes read or < 0 if there is an error.
+ */
+int32_t prvPAL_ReadBlock( OTA_FileContext_t * const pContext, uint32_t ulOffset, uint8_t *pucData, uint16_t usBlockSize );
+
+
 #endif /* ifndef _AWS_OTA_PAL_H_ */
