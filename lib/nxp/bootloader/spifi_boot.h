@@ -39,7 +39,7 @@
 #define BOOT_RESERVED_AREA (0x20000)
 
 /* Base address of the FLASH memory */
-#define BOOT_FLASH_BASE (0x10000000)
+#define BOOT_FLASH_BASE (0x10100000)
 
 /* Adress where XIP image is flashed and executed */
 #define BOOT_EXEC_IMAGE_ADDR (BOOT_FLASH_BASE + BOOT_RESERVED_AREA)
