@@ -354,11 +354,11 @@ static void hello_task( void * pvParameters )
             }
         }
 
-        else if( TLS_TRANSPORT_INVALID_PARAMETER == status )
+        else if( TLS_TRANSPORT_INVALID_PARAMETER == transportStatus )
         {
             FreeRTOS_debug_printf( ( "Error Connecting to server : bad parameter\n" ) );
         }
-        else if( TLS_TRANSPORT_CONNECT_FAILURE == status )
+        else if( TLS_TRANSPORT_CONNECT_FAILURE == transportStatus )
         {
             FreeRTOS_debug_printf( ( "Error Connecting to server : connect failure\n" ) );
         }
