@@ -83,4 +83,11 @@ BaseType_t Sockets_Connect( Socket_t * pTcpSocket,
  */
 void Sockets_Disconnect( Socket_t tcpSocket );
 
+
+/**
+ * @brief Set receive timeout for the socket.
+ * @param[in] tcpSocket The socket descriptor.
+ */
+void Sockets_SetReceiveTimeout( Socket_t tcpSocket, uint32_t timeoutMS );
+
 #endif /* ifndef FREERTOS_SOCKETS_WRAPPER_H_ */

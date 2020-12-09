@@ -1,5 +1,5 @@
 /*
- * FreeRTOS OTA V1.2.0
+ * FreeRTOS OTA PAL.
  * Copyright (C) 2020 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
@@ -23,20 +23,36 @@
  * http://www.FreeRTOS.org
  */
 
-#ifndef _AWS_OTA_PAL_TEST_ACCESS_DECLARE_H_
-#define _AWS_OTA_PAL_TEST_ACCESS_DECLARE_H_
+#ifndef OTA_PAL_H
+#define OTA_PAL_H
 
-#include "aws_iot_ota_types.h"
-#include "aws_iot_ota_agent.h"
-#include "aws_test_ota_config.h"
+#include "ota.h"
 
-#if otatestpalCHECK_FILE_SIGNATURE_SUPPORTED
-    OTA_Err_t test_prvPAL_CheckFileSignature( OTA_FileContext_t * const C );
-#endif
+OtaPalImageState_t xOtaPalGetPlatformImageState( OtaFileContext_t * const pFileContext );
 
-#if otatestpalREAD_AND_ASSUME_CERTIFICATE_SUPPORTED
-    u8 * test_prvPAL_ReadAndAssumeCertificate( const u8 * const pucCertName,
-                                               u32 * const lSignerCertSize );
-#endif
+OtaPalStatus_t xOtaPalSetPlatformImageState( OtaFileContext_t * const pFileContext,
+                                             OtaImageState_t eState );
 
-#endif /* ifndef _OTA_AGENT_TEST_ACCESS_DECLARE_H_ */
+OtaPalStatus_t xOtaPalResetDevice( OtaFileContext_t * const pFileContext );
+
+OtaPalStatus_t xOtaPalActivateNewImage( OtaFileContext_t * const pFileContext );
+
+int16_t xOtaPalWriteBlock( OtaFileContext_t * const pFileContext,
+                           uint32_t offset,
+                           uint8_t * const pData,
+                           uint32_t blockSize );
+OtaPalStatus_t xOtaPalCloseFile( OtaFileContext_t * const pFileContext );
+
+OtaPalStatus_t xOtaPalCreateFileForRx( OtaFileContext_t * const pFileContext );
+
+
+OtaPalStatus_t xOtaPalAbort( OtaFileContext_t * const pFileContext );
+
+OtaPalStatus_t xOtaPalOpenFileForRead( OtaFileContext_t * const pContext );
+
+int32_t xOtaPalReadBlock( OtaFileContext_t * const pContext,
+                          uint32_t offset,
+                          uint8_t * pData,
+                          uint16_t blockSize );
+
+#endif /* OTA_PAL_H */

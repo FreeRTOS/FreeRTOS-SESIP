@@ -209,4 +209,6 @@ int32_t TLS_FreeRTOS_send( NetworkContext_t * pNetworkContext,
                            const void * pBuffer,
                            size_t bytesToSend );
 
+void TLS_FreeRTOS_SetRecvTimeout( NetworkContext_t * pNetworkContext, uint32_t timeoutMS );
+
 #endif /* ifndef TLS_FREERTOS_H_ */

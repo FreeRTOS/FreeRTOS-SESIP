@@ -178,4 +178,17 @@ void Sockets_Disconnect( Socket_t tcpSocket )
     }
 }
 
+void Sockets_SetReceiveTimeout( Socket_t tcpSocket, uint32_t timeoutMS )
+{
+	 TickType_t timeoutTicks = pdMS_TO_TICKS( timeoutMS );
+
+	 /* Setting the receive block time cannot fail. */
+	  ( void ) FreeRTOS_setsockopt( tcpSocket,
+	                                 0,
+	                                 FREERTOS_SO_RCVTIMEO,
+	                                 &timeoutTicks,
+	                                 sizeof( TickType_t ) );
+
+}
+
 /*-----------------------------------------------------------*/

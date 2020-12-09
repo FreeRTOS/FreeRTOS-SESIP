@@ -74,13 +74,13 @@
  * @brief Represents string to be logged when mbedTLS returned error
  * does not contain a high-level code.
  */
-static const char * pNoHighLevelMbedTlsCodeStr = "<No-High-Level-Code>";
+static const char * pNoHighLevelMbedTlsCodeStr = "<No-High-Level-Error-Code>";
 
 /**
  * @brief Represents string to be logged when mbedTLS returned error
  * does not contain a low-level code.
  */
-static const char * pNoLowLevelMbedTlsCodeStr = "<No-Low-Level-Code>";
+static const char * pNoLowLevelMbedTlsCodeStr = "<No-Low-Level-Error-Code>";
 
 /**
  * @brief Utility for converting the high-level code in an mbedTLS error to string,
@@ -823,8 +823,8 @@ TlsTransportStatus_t TLS_FreeRTOS_Connect( NetworkContext_t * pNetworkContext,
         socketStatus = Sockets_Connect( &( pNetworkContext->tcpSocket ),
                                         pHostName,
                                         port,
-                                        receiveTimeoutMs,
-                                        sendTimeoutMs );
+										receiveTimeoutMs,
+										sendTimeoutMs );
 
         if( socketStatus != 0 )
         {
@@ -987,3 +987,8 @@ int32_t TLS_FreeRTOS_send( NetworkContext_t * pNetworkContext,
     return tlsStatus;
 }
 /*-----------------------------------------------------------*/
+
+void TLS_FreeRTOS_SetRecvTimeout( NetworkContext_t * pNetworkContext, uint32_t timeoutMS )
+{
+	Sockets_SetReceiveTimeout( pNetworkContext->tcpSocket, timeoutMS );
+}

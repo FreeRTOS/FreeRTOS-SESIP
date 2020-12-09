@@ -39,4 +39,10 @@ CK_RV xCheckIfProvisioned( void );
 
 CK_RV xDestroyCryptoObjects( void );
 
+CK_RV xProvisionPublicKey( CK_BYTE_PTR pucKey,
+                           CK_ULONG xKeyLength,
+                           CK_KEY_TYPE xPublicKeyType,
+                           CK_BYTE_PTR pxPublicKeyLabel,
+                           CK_ULONG ulPublicKeyLabelLen );
+
 #endif /* ifndef _PROVISION_H_ */

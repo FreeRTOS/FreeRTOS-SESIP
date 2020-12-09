@@ -29,7 +29,9 @@
 #include <stdint.h>
 #include "FreeRTOS.h"
 
-#define OTA_UPDATE_ENABLED   ( 1 )
+#include "core_mqtt.h"
+
+#define OTA_UPDATE_ENABLED    ( 1 )
 
 /**
  * @brief Function to start an OTA update task in the background.
@@ -40,8 +42,11 @@
  * @return pdTRUE if the OTA update task was successfully created.
  */
 
-BaseType_t xCreateOTAUpdateTask( void *pMQTTContext );
+BaseType_t xStartOTAUpdateDemo( void );
 
+BaseType_t xOTAProcessMQTTEvent( MQTTContext_t * pMQTTContext,
+                                 struct MQTTPacketInfo * pPacketInfo,
+                                 struct MQTTDeserializedInfo * pDeserializedInfo );
 
 /**
  * @brief Validate the integrity of the new image to be activated.
@@ -49,7 +54,10 @@ BaseType_t xCreateOTAUpdateTask( void *pMQTTContext );
  * @param[in] pSignature  The signature for the image, received from server.
  * @param[in] signatureLength Length of the signature.
  */
-BaseType_t xValidateImageSignature( uint8_t * pFilePath, char *pCertificatePath, uint8_t *pSignature, size_t signatureLength );
+BaseType_t xValidateImageSignature( uint8_t * pFilePath,
+                                    char * pCertificatePath,
+                                    uint8_t * pSignature,
+                                    size_t signatureLength );
 
 
-#endif
+#endif /* ifndef OTA_UPDATE_H */

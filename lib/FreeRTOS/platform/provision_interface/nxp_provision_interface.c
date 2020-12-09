@@ -118,10 +118,9 @@ static uint8_t * prvReadCertifcate( uint32_t * pulSize )
 {
     uint8_t * pucCert = pvPortMalloc( CERTIFICATE_SIZE );
 
-    memset( pucCert, 0x00, CERTIFICATE_SIZE );
-
     if( pucCert != NULL )
     {
+        memset( pucCert, 0x00, CERTIFICATE_SIZE );
         LogInfo( ( "Ready to read device certificate." ) );
         *pulSize = xReadInput( pucCert, CERTIFICATE_SIZE, pucTerminaterString, sizeof( pucTerminaterString ) );
     }
@@ -182,19 +181,24 @@ static CK_RV prvProvisionOtaSigning( void )
     CK_RV xResult = CKR_OK;
     CK_ULONG ulSize = 0;
     CK_OBJECT_HANDLE xHandle = CK_INVALID_HANDLE;
-    CK_BYTE_PTR pxOtaCert = NULL;
+    CK_BYTE_PTR pxOtaKey = NULL;
 
-    pxOtaCert = pvPortMalloc( CERTIFICATE_SIZE );
+    pxOtaKey = pvPortMalloc( CERTIFICATE_SIZE );
 
-    if( pxOtaCert != NULL )
+    if( pxOtaKey != NULL )
     {
         LogInfo( ( "Ready to read OTA verification key." ) );
 
-        ulSize = xReadInput( pxOtaCert, CERTIFICATE_SIZE, pucTerminaterString, sizeof( pucTerminaterString ) );
+        memset( pxOtaKey, 0x00, CERTIFICATE_SIZE );
+        ulSize = xReadInput( pxOtaKey, CERTIFICATE_SIZE, pucTerminaterString, sizeof( pucTerminaterString ) );
 
-        if( ulSize > 0 )
+        if( ( ulSize > 0 ) && ( ulSize < CERTIFICATE_SIZE ) )
         {
-            xProvisionCert( pxOtaCert, ulSize, pkcs11configLABEL_CODE_VERIFICATION_KEY, sizeof( pkcs11configLABEL_CODE_VERIFICATION_KEY ) );
+            xProvisionPublicKey( pxOtaKey, 
+                    ulSize + 1, /* Increased to add a NULL terminator. */
+                    CKK_EC,
+                    pkcs11configLABEL_CODE_VERIFICATION_KEY, 
+                    sizeof( pkcs11configLABEL_CODE_VERIFICATION_KEY ) );
 
             if( xResult != CKR_OK )
             {
@@ -211,7 +215,7 @@ static CK_RV prvProvisionOtaSigning( void )
         LogError( ( "Failed to allocate buffer to hold OTA verification key." ) );
     }
 
-    vPortFree( pxOtaCert );
+    vPortFree( pxOtaKey );
 
 
     return xResult;

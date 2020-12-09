@@ -50,8 +50,8 @@
 			</matcher>
 		</filter>
 		<filter>
-			<id>1604071533038</id>
-			<name>lib/FreeRTOS/ota</name>
+			<id>1607411051267</id>
+			<name>lib/FreeRTOS/ota-for-aws-iot-embedded-sdk</name>
 			<type>10</type>
 			<matcher>
 				<id>org.eclipse.ui.ide.multiFilter</id>
@@ -59,12 +59,66 @@
 			</matcher>
 		</filter>
 		<filter>
-			<id>1604071483092</id>
-			<name>lib/FreeRTOS/ota/src</name>
+			<id>1607411142000</id>
+			<name>lib/FreeRTOS/ota-for-aws-iot-embedded-sdk/source/dependency/coreJSON</name>
 			<type>10</type>
 			<matcher>
 				<id>org.eclipse.ui.ide.multiFilter</id>
-				<arguments>1.0-name-matches-false-false-http</arguments>
+				<arguments>1.0-name-matches-false-false-test</arguments>
+			</matcher>
+		</filter>
+		<filter>
+			<id>1607411274505</id>
+			<name>lib/FreeRTOS/ota-for-aws-iot-embedded-sdk/source/portable/os</name>
+			<type>6</type>
+			<matcher>
+				<id>org.eclipse.ui.ide.multiFilter</id>
+				<arguments>1.0-name-matches-false-false-ota_os_posix*</arguments>
+			</matcher>
+		</filter>
+		<filter>
+			<id>1607411658377</id>
+			<name>lib/FreeRTOS/ota-for-aws-iot-embedded-sdk/source/dependency/3rdparty/tinycbor</name>
+			<type>10</type>
+			<matcher>
+				<id>org.eclipse.ui.ide.multiFilter</id>
+				<arguments>1.0-name-matches-false-false-tools</arguments>
+			</matcher>
+		</filter>
+		<filter>
+			<id>1607411658383</id>
+			<name>lib/FreeRTOS/ota-for-aws-iot-embedded-sdk/source/dependency/3rdparty/tinycbor</name>
+			<type>10</type>
+			<matcher>
+				<id>org.eclipse.ui.ide.multiFilter</id>
+				<arguments>1.0-name-matches-false-false-tests</arguments>
+			</matcher>
+		</filter>
+		<filter>
+			<id>1607411658389</id>
+			<name>lib/FreeRTOS/ota-for-aws-iot-embedded-sdk/source/dependency/3rdparty/tinycbor</name>
+			<type>10</type>
+			<matcher>
+				<id>org.eclipse.ui.ide.multiFilter</id>
+				<arguments>1.0-name-matches-false-false-examples</arguments>
+			</matcher>
+		</filter>
+		<filter>
+			<id>1607411658394</id>
+			<name>lib/FreeRTOS/ota-for-aws-iot-embedded-sdk/source/dependency/3rdparty/tinycbor</name>
+			<type>10</type>
+			<matcher>
+				<id>org.eclipse.ui.ide.multiFilter</id>
+				<arguments>1.0-name-matches-false-false-scripts</arguments>
+			</matcher>
+		</filter>
+		<filter>
+			<id>1607411418480</id>
+			<name>lib/FreeRTOS/ota-for-aws-iot-embedded-sdk/source/dependency/3rdparty/tinycbor/src</name>
+			<type>6</type>
+			<matcher>
+				<id>org.eclipse.ui.ide.multiFilter</id>
+				<arguments>1.0-name-matches-false-false-open_memstream.c</arguments>
 			</matcher>
 		</filter>
 	</filteredResources>

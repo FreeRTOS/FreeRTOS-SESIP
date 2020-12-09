@@ -12,6 +12,7 @@
 #include "task.h"
 #include "queue.h"
 #include "timers.h"
+#include "semphr.h"
 
 /* Freescale includes. */
 #include "fsl_device_registers.h"
@@ -37,21 +38,22 @@
 #include "pkcs11.h"
 
 #include "user/demo-restrictions.h"
-#include "aws_iot_ota_mqtt.h"
 #include "ota_update.h"
+#include "core_mqtt_agent.h"
 
 /*******************************************************************************
  * Definitions
  ******************************************************************************/
+
 /**
  * @brief Milliseconds per second.
  */
-#define MILLISECONDS_PER_SECOND                           ( 1000U )
+#define MILLISECONDS_PER_SECOND    ( 1000U )
 
 /**
  * @brief Milliseconds per FreeRTOS tick.
  */
-#define MILLISECONDS_PER_TICK                             ( MILLISECONDS_PER_SECOND / configTICK_RATE_HZ )
+#define MILLISECONDS_PER_TICK      ( MILLISECONDS_PER_SECOND / configTICK_RATE_HZ )
 
 
 /**
@@ -76,6 +78,11 @@ static const uint8_t ucMACAddress[ 6 ] = { 0xDE, 0xAD, 0x00, 0xBE, 0xEF, 0x01 };
  * of overflow for the 32 bit unsigned integer used for holding the timestamp.
  */
 static uint32_t ulGlobalEntryTimeMs;
+
+/**
+ * @brief Semaphore used to synchronize publish complete callback.
+ */
+static SemaphoreHandle_t publishSem;
 
 #define democonfigROOT_CA_PEM                                            \
     ""                                                                   \
@@ -194,7 +201,9 @@ int main( void )
     {
         PRINTF( "Hello Task creation failed!.\n" );
 
-        while( 1 );
+        while( 1 )
+        {
+        }
     }
 
     xCreateRestrictedTasks( hello_task_PRIORITY );
@@ -202,7 +211,9 @@ int main( void )
 
     vTaskStartScheduler();
 
-    while(1);
+    while( 1 )
+    {
+    }
 }
 
 /*!
@@ -211,40 +222,53 @@ int main( void )
 
 uint32_t getTimeStampMs()
 {
-	TickType_t xTickCount = 0;
-	uint32_t ulTimeMs = 0UL;
+    TickType_t xTickCount = 0;
+    uint32_t ulTimeMs = 0UL;
 
-	/* Get the current tick count. */
-	xTickCount = xTaskGetTickCount();
+    /* Get the current tick count. */
+    xTickCount = xTaskGetTickCount();
 
-	/* Convert the ticks to milliseconds. */
-	ulTimeMs = ( uint32_t ) xTickCount * MILLISECONDS_PER_TICK;
+    /* Convert the ticks to milliseconds. */
+    ulTimeMs = ( uint32_t ) xTickCount * MILLISECONDS_PER_TICK;
 
-	/* Reduce ulGlobalEntryTimeMs from obtained time so as to always return the
-	 * elapsed time in the application. */
-	ulTimeMs = ( uint32_t ) ( ulTimeMs - ulGlobalEntryTimeMs );
+    /* Reduce ulGlobalEntryTimeMs from obtained time so as to always return the
+     * elapsed time in the application. */
+    ulTimeMs = ( uint32_t ) ( ulTimeMs - ulGlobalEntryTimeMs );
 
-	return ulTimeMs;
+    return ulTimeMs;
 }
 
 void eventCallback( MQTTContext_t * pContext,
                     MQTTPacketInfo_t * pPacketInfo,
                     MQTTDeserializedInfo_t * pDeserializedInfo )
 {
+    BaseType_t xResult;
 
-#if( OTA_UPDATE_ENABLED == 1 )
+    xResult = MQTTAgent_ProcessEvent( pContext, pPacketInfo, pDeserializedInfo );
 
-	vOTAMQTTEventCallback(pContext, pPacketInfo, pDeserializedInfo );
-#endif
+    #if ( OTA_UPDATE_ENABLED == 1 )
+        if( xResult == pdFALSE )
+        {
+            xResult = xOTAProcessMQTTEvent( pContext, pPacketInfo, pDeserializedInfo );
+        }
+    #endif
 
+    /* Process any application callback here. */
 }
 
+static void publishCompleteCallback( struct MQTTOperation * pOperation,
+                                     MQTTStatus_t status )
+{
+    xSemaphoreGive( publishSem );
+}
 
 static void hello_task( void * pvParameters )
 {
     MQTTContext_t mqttContext;
     TransportInterface_t transport;
     MQTTFixedBuffer_t fixedBuffer;
+    MQTTPublishInfo_t info;
+    MQTTOperation_t operation;
 
     MQTTStatus_t status;
     TlsTransportStatus_t transportStatus;
@@ -254,6 +278,7 @@ static void hello_task( void * pvParameters )
     CK_RV xResult = CKR_OK;
     CK_ULONG ulTemp = 0;
     char * pcEndpoint = NULL;
+    BaseType_t result;
 
     NetworkCredentials_t xNetworkCredentials = { 0 };
 
@@ -303,18 +328,26 @@ static void hello_task( void * pvParameters )
         connectInfo.passwordLength = strlen( connectInfo.pPassword );
 
         FreeRTOS_debug_printf( ( "Attempting a connection\n" ) );
-        transportStatus = TLS_FreeRTOS_Connect( mqttContext.transportInterface.pNetworkContext, pcEndpoint, 8883, &xNetworkCredentials, 36000, 36000 );
+        transportStatus = TLS_FreeRTOS_Connect( mqttContext.transportInterface.pNetworkContext, pcEndpoint, 8883, &xNetworkCredentials, 4000, 36000 );
 
         if( TLS_TRANSPORT_SUCCESS == transportStatus )
         {
             /* Send the connect packet. Use 100 ms as the timeout to wait for the CONNACK packet. */
             status = MQTT_Connect( &mqttContext, &connectInfo, NULL, 100, &sessionPresent );
 
+            TLS_FreeRTOS_SetRecvTimeout( mqttContext.transportInterface.pNetworkContext, 500 );
+
             if( status == MQTTSuccess )
             {
+                result = MQTTAgent_Init( &mqttContext );
+                configASSERT( result == pdTRUE );
 
-                #if( OTA_UPDATE_ENABLED == 1 )
-                    xCreateOTAUpdateTask( &mqttContext );
+                publishSem = xSemaphoreCreateBinary();
+                configASSERT( publishSem != NULL );
+
+                #if ( OTA_UPDATE_ENABLED == 1 )
+                    result = xStartOTAUpdateDemo();
+                    configASSERT( result == pdTRUE );
                 #endif
 
                 for( ; ; )
@@ -328,18 +361,25 @@ static void hello_task( void * pvParameters )
                     assert( sessionPresent == false );
 
                     /* Do something with the connection. Publish some data. */
-                    MQTTPublishInfo_t info =
-                    {
-                        MQTTQoS0,
-                        false,       /* This should not be retained */
-                        false,       /* This is not a duplicate message */
-                        "Test/Hello",10,
-                        payload,     payload_length
-                    };
+                    info.qos = MQTTQoS0;
+                    info.dup = false;
+                    info.retain = false;
+                    info.pTopicName = "Test/Hello";
+                    info.topicNameLength = 10;
+                    info.pPayload = payload;
+                    info.payloadLength = payload_length;
 
-                    MQTT_Publish( &mqttContext, &info, 1 );
+                    operation.type = MQTT_OP_PUBLISH;
+                    operation.info.pPublishInfo = &info;
+                    operation.callback = publishCompleteCallback;
 
-                    MQTT_ProcessLoop( &mqttContext, 10000 );
+                    MQTTAgent_Enqueue( &operation, portMAX_DELAY );
+
+                    xSemaphoreTake( publishSem, portMAX_DELAY );
+
+                    PRINTF( "Published helloworld.\r\n" );
+
+                    vTaskDelay( pdMS_TO_TICKS( 5000 ) );
                 }
 
                 HeapStats_t heap_stats;
@@ -351,7 +391,13 @@ static void hello_task( void * pvParameters )
                 FreeRTOS_debug_printf( ( "Minimum Ever Free Bytes Remaining %d\n", heap_stats.xMinimumEverFreeBytesRemaining ) );
                 FreeRTOS_debug_printf( ( "Number of Successful Allocations  %d\n", heap_stats.xNumberOfSuccessfulAllocations ) );
                 FreeRTOS_debug_printf( ( "Number of Successful Frees        %d\n", heap_stats.xNumberOfSuccessfulFrees ) );
+
+
+                /* Disconnect */
+                MQTT_Disconnect( &mqttContext );
             }
+
+            TLS_FreeRTOS_Disconnect( mqttContext.transportInterface.pNetworkContext );
         }
 
         else if( TLS_TRANSPORT_INVALID_PARAMETER == transportStatus )
@@ -368,14 +414,9 @@ static void hello_task( void * pvParameters )
         }
     }
 
-    /* Disconnect */
-    MQTT_Disconnect( &mqttContext );
-
-    TLS_FreeRTOS_Disconnect( mqttContext.transportInterface.pNetworkContext );
-
     for( ; ; )
     {
-        FreeRTOS_debug_printf( ( "MQTT FAILURE\n" ) );
+        FreeRTOS_debug_printf( ( "Demo FAILURE\r\n" ) );
         vTaskDelay( pdMS_TO_TICKS( 1000 ) );
     }
 }
@@ -443,9 +484,9 @@ void vApplicationMallocFailedHook( void )
 
 #if ( configSUPPORT_STATIC_ALLOCATION == 1 )
 
-    /* configUSE_STATIC_ALLOCATION is set to 1, so the application must provide an
-     * implementation of vApplicationGetIdleTaskMemory() to provide the memory that is
-     * used by the Idle task. */
+/* configUSE_STATIC_ALLOCATION is set to 1, so the application must provide an
+ * implementation of vApplicationGetIdleTaskMemory() to provide the memory that is
+ * used by the Idle task. */
     void vApplicationGetIdleTaskMemory( StaticTask_t ** ppxIdleTaskTCBBuffer,
                                         StackType_t ** ppxIdleTaskStackBuffer,
                                         uint32_t * pulIdleTaskStackSize )
@@ -470,13 +511,13 @@ void vApplicationMallocFailedHook( void )
     }
     /*-----------------------------------------------------------*/
 
-    /**
-     * @brief This is to provide the memory that is used by the RTOS daemon/time task.
-     *
-     * If configUSE_STATIC_ALLOCATION is set to 1, so the application must provide an
-     * implementation of vApplicationGetTimerTaskMemory() to provide the memory that is
-     * used by the RTOS daemon/time task.
-     */
+/**
+ * @brief This is to provide the memory that is used by the RTOS daemon/time task.
+ *
+ * If configUSE_STATIC_ALLOCATION is set to 1, so the application must provide an
+ * implementation of vApplicationGetTimerTaskMemory() to provide the memory that is
+ * used by the RTOS daemon/time task.
+ */
     void vApplicationGetTimerTaskMemory( StaticTask_t ** ppxTimerTaskTCBBuffer,
                                          StackType_t ** ppxTimerTaskStackBuffer,
                                          uint32_t * pulTimerTaskStackSize )

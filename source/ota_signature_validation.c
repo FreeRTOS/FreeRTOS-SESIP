@@ -22,33 +22,28 @@
  * http://aws.amazon.com/freertos
  * http://www.FreeRTOS.org
  */
+#include "FreeRTOS.h"
+#include "task.h"
 
 #include "ota_update.h"
 #include "fsl_debug_console.h"
-
-#include "spifi_boot.h"
-
-#include "iot_crypto.h"
+#include "ota_pal.h"
 #include "core_pkcs11.h"
-#include "aws_ota_codesigner_certificate.h"
-#include "aws_iot_ota_pal.h"
+#include "core_pki_utils.h"
 
 /**
  * @brief The crypto algorithm used for the digital signature.
  */
-#define CRYPTO_ALGORITHM      cryptoASYMMETRIC_ALGORITHM_ECDSA
+#define CRYPTO_ALGORITHM          cryptoASYMMETRIC_ALGORITHM_ECDSA
 
 /**
  * @brief The signature method used for calculating the signature.
  */
-#define SIGNATURE_METHOD      cryptoHASH_ALGORITHM_SHA256
+#define SIGNATURE_METHOD          cryptoHASH_ALGORITHM_SHA256
 
-#define DATA_BUFFER_LENGTH    ( 4096 )
+#define OTA_IMAGE_BLOCK_LENGTH    ( 4096 )
 
-static uint8_t dataBuffer[ DATA_BUFFER_LENGTH ];
-
-static CK_RV prvGetCertificateHandlePKCS11( CK_FUNCTION_LIST_PTR pxFunctionList,
-                                            CK_SESSION_HANDLE xSession,
+static CK_RV prvPKCS11GetCertificateHandle( CK_SESSION_HANDLE xSession,
                                             const char * pcLabelName,
                                             CK_OBJECT_HANDLE_PTR pxCertHandle )
 {
@@ -56,49 +51,43 @@ static CK_RV prvGetCertificateHandlePKCS11( CK_FUNCTION_LIST_PTR pxFunctionList,
     CK_RV xResult = CKR_OK;
     CK_ULONG ulCount = 0;
     CK_BBOOL xFindInit = CK_FALSE;
+    CK_FUNCTION_LIST_PTR xFunctionList;
+
+    xResult = C_GetFunctionList( &xFunctionList );
 
     /* Get the certificate handle. */
-    if( 0 == xResult )
+    if( CKR_OK == xResult )
     {
         xTemplate.type = CKA_LABEL;
         xTemplate.ulValueLen = strlen( pcLabelName ) + 1;
         xTemplate.pValue = ( char * ) pcLabelName;
-        xResult = pxFunctionList->C_FindObjectsInit( xSession, &xTemplate, 1 );
+        xResult = xFunctionList->C_FindObjectsInit( xSession, &xTemplate, 1 );
     }
 
-    if( 0 == xResult )
+    if( CKR_OK == xResult )
     {
         xFindInit = CK_TRUE;
-        xResult = pxFunctionList->C_FindObjects( xSession,
-                                                 ( CK_OBJECT_HANDLE_PTR ) pxCertHandle,
-                                                 1,
-                                                 &ulCount );
+        xResult = xFunctionList->C_FindObjects( xSession,
+                                                ( CK_OBJECT_HANDLE_PTR ) pxCertHandle,
+                                                1,
+                                                &ulCount );
     }
 
     if( ( CK_TRUE == xFindInit ) && ( xResult == 0 ) )
     {
-        xResult = pxFunctionList->C_FindObjectsFinal( xSession );
+        xResult = xFunctionList->C_FindObjectsFinal( xSession );
     }
 
     return xResult;
 }
 
-/* Note that this function mallocs a buffer for the certificate to reside in,
- * and it is the responsibility of the caller to free the buffer. */
-static CK_RV prvGetCertificatePKCS11( const char * pcLabelName,
-                                      uint8_t ** ppucData,
-                                      uint32_t * pulDataSize )
+static CK_RV prvOpenPKCS11Session( CK_SESSION_HANDLE_PTR pSession )
 {
     /* Find the certificate */
-    CK_OBJECT_HANDLE xHandle = 0;
     CK_RV xResult;
     CK_FUNCTION_LIST_PTR xFunctionList;
     CK_SLOT_ID xSlotId;
     CK_ULONG xCount = 1;
-    CK_SESSION_HANDLE xSession;
-    CK_ATTRIBUTE xTemplate = { 0 };
-    uint8_t * pucCert = NULL;
-    CK_BBOOL xSessionOpen = CK_FALSE;
 
     xResult = C_GetFunctionList( &xFunctionList );
 
@@ -114,98 +103,119 @@ static CK_RV prvGetCertificatePKCS11( const char * pcLabelName,
 
     if( CKR_OK == xResult )
     {
-        xResult = xFunctionList->C_OpenSession( xSlotId, CKF_SERIAL_SESSION, NULL, NULL, &xSession );
-    }
-
-    if( CKR_OK == xResult )
-    {
-        xSessionOpen = CK_TRUE;
-        xResult = prvGetCertificateHandlePKCS11( xFunctionList, xSession, pcLabelName, &xHandle );
-    }
-
-    if( ( xHandle != 0 ) && ( xResult == CKR_OK ) ) /* 0 is an invalid handle */
-    {
-        /* Get the length of the certificate */
-        xTemplate.type = CKA_VALUE;
-        xTemplate.pValue = NULL;
-        xResult = xFunctionList->C_GetAttributeValue( xSession, xHandle, &xTemplate, xCount );
-
-        if( xResult == CKR_OK )
-        {
-            pucCert = pvPortMalloc( xTemplate.ulValueLen );
-        }
-
-        if( ( xResult == CKR_OK ) && ( pucCert == NULL ) )
-        {
-            xResult = CKR_HOST_MEMORY;
-        }
-
-        if( xResult == CKR_OK )
-        {
-            xTemplate.pValue = pucCert;
-            xResult = xFunctionList->C_GetAttributeValue( xSession, xHandle, &xTemplate, xCount );
-
-            if( xResult == CKR_OK )
-            {
-                *ppucData = pucCert;
-                *pulDataSize = xTemplate.ulValueLen;
-            }
-            else
-            {
-                vPortFree( pucCert );
-            }
-        }
-    }
-    else /* Certificate was not found. */
-    {
-        *ppucData = NULL;
-        *pulDataSize = 0;
-    }
-
-    if( xSessionOpen == CK_TRUE )
-    {
-        ( void ) xFunctionList->C_CloseSession( xSession );
+        xResult = xFunctionList->C_OpenSession( xSlotId, CKF_SERIAL_SESSION, NULL, NULL, pSession );
     }
 
     return xResult;
 }
 
-static char * prvGetCertificate( const char * pcCertName,
-                                 uint32_t * ulSignerCertSize )
+static CK_RV prvClosePKCS11Session( CK_SESSION_HANDLE xSession )
 {
-    uint8_t * pucCertData;
-    uint32_t ulCertSize;
-    uint8_t * pucSignerCert = NULL;
-    CK_RV xResult;
+    CK_RV xResult = CKR_OK;
+    CK_FUNCTION_LIST_PTR xFunctionList;
 
-    xResult = prvGetCertificatePKCS11( pcCertName, &pucSignerCert, ulSignerCertSize );
+    xResult = C_GetFunctionList( &xFunctionList );
 
-    if( ( xResult == CKR_OK ) && ( pucSignerCert != NULL ) )
+    if( xResult == CKR_OK )
     {
-        PRINTF( "Using cert with PKCS11 label: %s OK\r\n", pcCertName );
-    }
-    else
-    {
-        PRINTF( "No such certificate file: %s. Using aws_ota_codesigner_certificate.h.\r\n",
-                ( const char * ) pcCertName );
-
-        /* Allocate memory for the signer certificate plus a terminating zero so we can copy it and return to the caller. */
-        ulCertSize = sizeof( signingcredentialSIGNING_CERTIFICATE_PEM );
-        pucSignerCert = pvPortMalloc( ulCertSize );                           /*lint !e9029 !e9079 !e838 malloc proto requires void*. */
-        pucCertData = ( uint8_t * ) signingcredentialSIGNING_CERTIFICATE_PEM; /*lint !e9005 we don't modify the cert but it could be set by PKCS11 so it's not const. */
-
-        if( pucSignerCert != NULL )
-        {
-            memcpy( pucSignerCert, pucCertData, ulCertSize );
-            *ulSignerCertSize = ulCertSize;
-        }
-        else
-        {
-            PRINTF( "Error: No memory for storing certificate !\r\n" );
-        }
+        xResult = xFunctionList->C_CloseSession( xSession );
     }
 
-    return ( char * ) pucSignerCert;
+    return xResult;
+}
+
+CK_RV xVerifyImageSignatureUsingPKCS11( CK_SESSION_HANDLE session,
+                                        CK_OBJECT_HANDLE certificateHandle,
+                                        OtaFileContext_t * pFile,
+                                        uint8_t * pSignature,
+                                        size_t signatureLength )
+
+{
+    /* The ECDSA mechanism will be used to verify the message digest. */
+    CK_MECHANISM mechanism = { CKM_ECDSA, NULL, 0 };
+
+    /* SHA 256  will be used to calculate the digest. */
+    CK_MECHANISM xDigestMechanism = { CKM_SHA256, NULL, 0 };
+
+    /* The buffer used to hold the calculated SHA25 digest of the image. */
+    CK_BYTE digestResult[ pkcs11SHA256_DIGEST_LENGTH ] = { 0 };
+    CK_ULONG digestLength = pkcs11SHA256_DIGEST_LENGTH;
+
+    CK_RV result = CKR_OK;
+
+    CK_FUNCTION_LIST_PTR functionList;
+
+    /* Buffer used to fetch blocks from image to calculate the digest. */
+    static uint8_t buffer[ OTA_IMAGE_BLOCK_LENGTH ] = { 0 };
+
+    size_t offset = 0, bufLength;
+
+    result = C_GetFunctionList( &functionList );
+
+    /* Calculate the digest of the image. */
+    if( result == CKR_OK )
+    {
+        result = functionList->C_DigestInit( session,
+                                             &xDigestMechanism );
+    }
+
+    do
+    {
+        bufLength = xOtaPalReadBlock( pFile, offset, buffer, OTA_IMAGE_BLOCK_LENGTH );
+
+        if( bufLength > 0 )
+        {
+            result = functionList->C_DigestUpdate( session, buffer, bufLength );
+
+            if( result != CKR_OK )
+            {
+                break;
+            }
+
+            offset += bufLength;
+        }
+    } while( bufLength == OTA_IMAGE_BLOCK_LENGTH );
+
+    if( bufLength < 0 )
+    {
+        PRINTF( "Failed to read a block of data from the image.\r\n" );
+        result = CKR_GENERAL_ERROR;
+    }
+
+    if( result == CKR_OK )
+    {
+        result = functionList->C_DigestFinal( session,
+                                              NULL,
+                                              &digestLength );
+    }
+
+    /* Now that digestLength contains the required byte length, retrieve the
+     * digest buffer.
+     */
+    if( result == CKR_OK )
+    {
+        result = functionList->C_DigestFinal( session,
+                                              digestResult,
+                                              &digestLength );
+    }
+
+    if( result == CKR_OK )
+    {
+        result = functionList->C_VerifyInit( session,
+                                             &mechanism,
+                                             certificateHandle );
+    }
+
+    if( result == CKR_OK )
+    {
+        result = functionList->C_Verify( session,
+                                         digestResult,
+                                         pkcs11SHA256_DIGEST_LENGTH,
+                                         pSignature,
+                                         signatureLength );
+    }
+
+    return result;
 }
 
 
@@ -214,74 +224,70 @@ BaseType_t xValidateImageSignature( uint8_t * pFilePath,
                                     uint8_t * pSignature,
                                     size_t signatureLength )
 {
-    void * VerificationContext;
-    char * cert = NULL;
-    uint32_t certsize;
-    OTA_Err_t status = kOTA_Err_None;
-    OTA_FileContext_t context = { 0 };
-    int32_t bytesRead = 0;
-    uint32_t offset = 0;
+    OtaPalStatus_t status;
+    OtaFileContext_t fileContext = { 0 };
+    CK_SESSION_HANDLE session = CKR_SESSION_HANDLE_INVALID;
+    CK_RV xPKCS11Status = CKR_OK;
+    CK_OBJECT_HANDLE certHandle;
+    BaseType_t result = pdTRUE;
+    uint8_t pkcs11Signature[ pkcs11ECDSA_P256_SIGNATURE_LENGTH ] = { 0 };
 
-    PRINTF( "Validating the integrity of new image.\r\n" );
 
-    cert = prvGetCertificate( pCertificatePath, &certsize );
+    PRINTF( "Validating the integrity of OTA image.\r\n" );
 
-    if( cert == NULL )
-    {
-        PRINTF( "Cannot get the certificate from path %s for signature validation.", pCertificatePath );
-        return pdFALSE;
-    }
+    fileContext.pFilePath = pFilePath;
 
-    context.pucFilePath = pFilePath;
+    status = xOtaPalOpenFileForRead( &fileContext );
 
-    status = prvPAL_OpenFileForRead( &context );
-
-    if( status != kOTA_Err_None )
+    if( status != OtaPalSuccess )
     {
         PRINTF( "Cannot open the image file for reading, error = %d.\r\n", status );
         return pdFALSE;
     }
-    else
+
+    if( result == pdTRUE )
     {
-        PRINTF( "Successfully opened the image file for calculating signature.\r\n" );
+
+    	if( PKI_mbedTLSSignatureToPkcs11Signature( pkcs11Signature, pSignature )  !=  0 )
+    	{
+    		PRINTF("Cannot convert signature to PKCS11 format.\r\n" );
+    		result = pdFALSE;
+    	}
     }
 
-    if( CRYPTO_SignatureVerificationStart( &VerificationContext, CRYPTO_ALGORITHM, SIGNATURE_METHOD ) != pdTRUE )
+    if( result == pdTRUE )
     {
-        PRINTF( "Cannot initialize the signature for validation.\r\n" );
-        return pdFALSE;
+
+    	xPKCS11Status = prvOpenPKCS11Session( &session );
+
+    	if( xPKCS11Status == CKR_OK )
+    	{
+    		xPKCS11Status = prvPKCS11GetCertificateHandle( session, pCertificatePath, &certHandle );
+    	}
+
+    	if( xPKCS11Status == CKR_OK )
+    	{
+    			xPKCS11Status = xVerifyImageSignatureUsingPKCS11( session,
+    					certHandle,
+						&fileContext,
+						pkcs11Signature,
+						pkcs11ECDSA_P256_SIGNATURE_LENGTH );
+    	}
+
+    	if( xPKCS11Status != CKR_OK )
+    	{
+    		PRINTF( "Image verification failed with PKCS11 status %d\r\n", xPKCS11Status );
+    		result = pdFALSE;
+    	}
     }
 
-    do
-    {
-        bytesRead = prvPAL_ReadBlock( &context, offset, dataBuffer, DATA_BUFFER_LENGTH );
 
-        if( bytesRead > 0 )
-        {
-            CRYPTO_SignatureVerificationUpdate( VerificationContext, dataBuffer, bytesRead );
-            offset += bytesRead;
-        }
-    } while( bytesRead == DATA_BUFFER_LENGTH );
+    ( void ) xOtaPalCloseFile( &fileContext );
 
-    if( bytesRead < 0 )
+    if( session != CKR_SESSION_HANDLE_INVALID )
     {
-        PRINTF( "Failed to read bytes from image file. error = %d.\r\n", bytesRead );
-        return pdFALSE;
+        ( void ) prvClosePKCS11Session( session );
     }
 
-    status = prvPAL_CloseFile( &context );
-
-    if( status != kOTA_Err_None )
-    {
-        PRINTF( "Failed to close the image file, error = %d.\r\n", status );
-        return pdFALSE;
-    }
-
-    if( CRYPTO_SignatureVerificationFinal( VerificationContext, cert, certsize, pSignature, signatureLength ) != pdTRUE )
-    {
-        PRINTF( "Signature validation for the image failed.\r\n" );
-        return pdFALSE;
-    }
-
-    return pdTRUE;
+    return result;
 }

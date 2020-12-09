@@ -122,14 +122,12 @@
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/lib/FreeRTOS/platform/freertos/mbedtls}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/lib/FreeRTOS/FreeRTOS-Plus-Trace/Include}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/lib/FreeRTOS/FreeRTOS-Plus-Trace/config}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/lib/FreeRTOS/ota/include}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/lib/FreeRTOS/ota/src}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/lib/FreeRTOS/ota/src/mqtt}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/lib/jsmn}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/lib/tinycbor/src}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/lib/FreeRTOS/crypto/include}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/lib/nxp/bootloader}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/lib/FreeRTOS/FreeRTOS-Plus-TCP/tools/tcp_utilities/include/}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/lib/FreeRTOS/ota-for-aws-iot-embedded-sdk/source/include}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/lib/FreeRTOS/ota-for-aws-iot-embedded-sdk/source/dependency/3rdparty/tinycbor/src}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/lib/FreeRTOS/ota-for-aws-iot-embedded-sdk/source/dependency/coreJSON/source/include}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/lib/FreeRTOS/ota-for-aws-iot-embedded-sdk/source/portable/os}&quot;"/>
 								</option>
 								<option id="gnu.c.compiler.option.include.files.1280581695" name="Include files (-include)" superClass="gnu.c.compiler.option.include.files" useByScannerDiscovery="false"/>
 								<option id="com.crt.advproject.gcc.exe.debug.option.optimization.level.1201455628" name="Optimization Level" superClass="com.crt.advproject.gcc.exe.debug.option.optimization.level" useByScannerDiscovery="true" value="gnu.c.optimization.level.size" valueType="enumerated"/>
@@ -322,23 +320,16 @@
 						<entry excluding="test" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="lib/FreeRTOS/coreMQTT"/>
 						<entry excluding="mbedtls_utils/mbedtls_error.h|mbedtls_utils/mbedtls_error.c|mbedtls/visualc|mbedtls/tests|mbedtls/scripts|mbedtls/programs" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="lib/FreeRTOS/corePKCS11/3rdparty"/>
 						<entry excluding="portable/mbedtls/include|portable/windows" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="lib/FreeRTOS/corePKCS11/source"/>
-						<entry flags="VALUE_WORKSPACE_PATH" kind="sourcePath" name="lib/FreeRTOS/crypto/include"/>
-						<entry flags="VALUE_WORKSPACE_PATH" kind="sourcePath" name="lib/FreeRTOS/crypto/src"/>
-						<entry flags="VALUE_WORKSPACE_PATH" kind="sourcePath" name="lib/FreeRTOS/ota/include"/>
-						<entry flags="VALUE_WORKSPACE_PATH" kind="sourcePath" name="lib/FreeRTOS/ota/portable/LPC54018"/>
-						<entry excluding="mqtt" flags="VALUE_WORKSPACE_PATH" kind="sourcePath" name="lib/FreeRTOS/ota/src"/>
-						<entry flags="VALUE_WORKSPACE_PATH" kind="sourcePath" name="lib/FreeRTOS/ota/src/mqtt"/>
+						<entry flags="VALUE_WORKSPACE_PATH" kind="sourcePath" name="lib/FreeRTOS/ota-for-aws-iot-embedded-sdk"/>
 						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="lib/FreeRTOS/platform/freertos/mbedtls"/>
 						<entry excluding="src/tls_freertos.c|src/plaintext_freertos.c" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="lib/FreeRTOS/platform/freertos/transport"/>
 						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="lib/FreeRTOS/platform/pkcs11"/>
 						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="lib/FreeRTOS/platform/provision_interface"/>
 						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="lib/FreeRTOS/provision"/>
-						<entry flags="VALUE_WORKSPACE_PATH" kind="sourcePath" name="lib/jsmn"/>
 						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="lib/mbedtls/include"/>
 						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="lib/mbedtls/library"/>
 						<entry excluding="enet_txrx_transfer_rxinterrupt" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="lib/nxp"/>
 						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="lib/pkcs11"/>
-						<entry flags="VALUE_WORKSPACE_PATH" kind="sourcePath" name="lib/tinycbor/src"/>
 						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="source"/>
 					</sourceEntries>
 				</configuration>

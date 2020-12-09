@@ -24,7 +24,7 @@
  */
 
 /**
- * @file aws_ota_agent_config.h
+ * @file ota_config.h
  * @brief OTA user configurable settings.
  */
 
@@ -42,12 +42,17 @@
  */
 #define otaconfigSTACK_SIZE                     3584U
 
+#define otaconfigTASK_PRIORITY                  ( configMAX_PRIORITIES - 2 )
+
 /**
  * @brief Log base 2 of the size of the file data block message (excluding the header).
  *
  * 10 bits yields a data block size of 1KB.
  */
-#define otaconfigLOG2_FILE_BLOCK_SIZE           10UL
+
+#define otaconfigLOG2_FILE_BLOCK_SIZE    10UL
+
+#define otaconfigFILE_BLOCK_SIZE           1024UL
 
 /**
  * @brief Milliseconds to wait for the self test phase to succeed before we force reset.
@@ -89,7 +94,7 @@
  *  Please note that this must be set larger than zero.
  *
  */
-#define otaconfigMAX_NUM_BLOCKS_REQUEST        1U
+#define otaconfigMAX_NUM_BLOCKS_REQUEST        4U
 
 /**
  * @brief The maximum number of requests allowed to send without a response before we abort.
@@ -106,7 +111,7 @@
  * This configurations parameter sets the maximum number of static data buffers used by
  * the OTA agent for job and file data blocks received.
  */
-#define otaconfigMAX_NUM_OTA_DATA_BUFFERS       1U
+#define otaconfigMAX_NUM_OTA_DATA_BUFFERS       4U
 
 /**
  * @brief The protocol selected for OTA control operations.
@@ -153,5 +158,9 @@
  * configuration disabled.
  */
 #define otaconfigAllowDowngrade              0U
+
+#define  OTA_MAX_FILE_PATH_SIZE              ( 64 )
+
+#define OTA_MAX_STREAM_NAME_SIZE             ( 64 )
 
 #endif /* _AWS_OTA_AGENT_CONFIG_H_ */

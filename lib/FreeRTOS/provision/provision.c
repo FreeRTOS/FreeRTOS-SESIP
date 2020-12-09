@@ -700,3 +700,99 @@ CK_RV xDestroyCryptoObjects( void )
     return xResult;
 }
 /*-----------------------------------------------------------*/
+
+CK_RV xProvisionPublicKey( CK_BYTE_PTR pucKey,
+                           CK_ULONG xKeyLength,
+                           CK_KEY_TYPE xPublicKeyType,
+                           CK_BYTE_PTR pxPublicKeyLabel,
+                           CK_ULONG ulPublicKeyLabelLen )
+{
+    CK_RV xResult;
+    CK_SESSION_HANDLE xSession;
+    CK_BBOOL xTrue = CK_TRUE;
+    CK_FUNCTION_LIST_PTR pxFunctionList;
+    CK_OBJECT_CLASS xClass = CKO_PUBLIC_KEY;
+    CK_OBJECT_HANDLE xPublicKeyHandle = CK_INVALID_HANDLE;
+    int lMbedResult = 0;
+    mbedtls_pk_context xMbedPkContext = { 0 };
+
+    xResult = C_GetFunctionList( &pxFunctionList );
+    configASSERT( xResult == CKR_OK );
+
+    xResult = xInitializePkcs11Session( &xSession );
+    configASSERT( xResult == CKR_OK );
+
+    mbedtls_pk_init( &xMbedPkContext );
+
+    /* Try parsing the private key using mbedtls_pk_parse_key. */
+    lMbedResult = mbedtls_pk_parse_key( &xMbedPkContext, pucKey, xKeyLength, NULL, 0 );
+
+    /* If mbedtls_pk_parse_key didn't work, maybe the private key is not included in the input passed in.
+     * Try to parse just the public key. */
+    if( lMbedResult != 0 )
+    {
+        lMbedResult = mbedtls_pk_parse_public_key( &xMbedPkContext, pucKey, xKeyLength );
+    }
+
+    if( lMbedResult != 0 )
+    {
+        LogError( ( "Could not provision OTA public key. Failed to parse the public key." ) );
+        xResult = CKR_ARGUMENTS_BAD;
+    }
+
+    if( ( xResult == CKR_OK ) && ( xPublicKeyType == CKK_EC ) )
+    {
+        CK_BYTE xEcParams[] = pkcs11DER_ENCODED_OID_P256;
+        size_t xLength;
+        CK_BYTE xEcPoint[ 256 ] = { 0 };
+
+        mbedtls_ecdsa_context * pxEcdsaContext = ( mbedtls_ecdsa_context * ) xMbedPkContext.pk_ctx;
+
+        /* DER encoded EC point. Leave 2 bytes for the tag and length. */
+        lMbedResult = mbedtls_ecp_point_write_binary( &pxEcdsaContext->grp,
+                                                      &pxEcdsaContext->Q,
+                                                      MBEDTLS_ECP_PF_UNCOMPRESSED,
+                                                      &xLength,
+                                                      xEcPoint + 2,
+                                                      sizeof( xEcPoint ) - 2 );
+        xEcPoint[ 0 ] = 0x04; /* Octet string. */
+        xEcPoint[ 1 ] = ( CK_BYTE ) xLength;
+
+        CK_ATTRIBUTE xPublicKeyTemplate[] =
+        {
+            { CKA_CLASS,     &xClass,          sizeof( xClass )                             },
+            { CKA_KEY_TYPE,  &xPublicKeyType,  sizeof( xPublicKeyType )                     },
+            { CKA_TOKEN,     &xTrue,           sizeof( xTrue )                              },
+            { CKA_VERIFY,    &xTrue,           sizeof( xTrue )                              },
+            { CKA_EC_PARAMS, xEcParams,        sizeof( xEcParams )                          },
+            { CKA_EC_POINT,  xEcPoint,         xLength + 2                                  },
+            { CKA_LABEL,     pxPublicKeyLabel, ulPublicKeyLabelLen                          }
+        };
+
+        xResult = pxFunctionList->C_CreateObject( xSession,
+                                                  ( CK_ATTRIBUTE_PTR ) xPublicKeyTemplate,
+                                                  sizeof( xPublicKeyTemplate ) / sizeof( CK_ATTRIBUTE ),
+                                                  &xPublicKeyHandle );
+    }
+    else
+    {
+        xResult = CKR_ATTRIBUTE_VALUE_INVALID;
+        LogError( ( "Failed importing OTA public key handle. Invalid key type. "
+                    "Supported options are CKK_RSA and CKK_EC" ) );
+    }
+
+    mbedtls_pk_free( &xMbedPkContext );
+    
+    if( xSession != CK_INVALID_HANDLE )
+    {
+        ( void ) pxFunctionList->C_CloseSession( xSession );
+    }
+
+    if( xPublicKeyHandle == CK_INVALID_HANDLE )
+    {
+        LogError( ( "Failed importing OTA public key handle. Could not create a valid public key handle." ) );
+    }
+
+    return xResult;
+}
+
