@@ -1,0 +1,181 @@
+digraph core_pkcs11_mbedtls {
+    node [shape=circle,
+      fixedsize=true,
+      width=2.0,
+      color="black", 
+      fillcolor="#eeeeee",
+      style="filled,solid",
+      fontsize=12]
+    // C_Initialize
+    C_Initialize [style=filled,shape=box,color=red]
+    C_Initialize->mbedtls_mutex_init 
+    mbedtls_mutex_init->mbedtls_ctr_drbg_init 
+    mbedtls_ctr_drbg_init->mbedtls_ctr_drbg_seed 
+
+    // C_Finalize
+    C_Finalize [style=filled,shape=box,color=red]
+    C_Finalize->mbedtls_entropy_free 
+    mbedtls_entropy_free->mbedtls_ctr_drbg_free 
+    mbedtls_ctr_drbg_free->mbedtls_mutex_free 
+
+    // C_OpenSession 
+    C_OpenSession [style=filled,shape=box,color=red]
+    C_OpenSession->mbedtls_mutex_lock 
+
+    // C_CloseSession
+    C_CloseSession [style=filled,shape=box,color=red]
+    mbedtls_mutex_free2 [label="mbedtls_mutex_free"]
+    C_CloseSession->mbedtls_pk_free 
+    mbedtls_pk_free->mbedtls_mutex_free2
+    mbedtls_mutex_free2->mbedtls_sha256_free 
+
+    // C_CreateObject
+    C_CreateObject [style=filled,shape=box,color=red]
+    private_key [style=filled,shape=box,color=lightblue]
+    public_key [style=filled,shape=box,color=lightblue]
+    EC_Private_Key [style=filled,shape=box,color=lightblue]
+    EC_Public_Key [style=filled,shape=box,color=lightblue]
+    RSA_Private_Key [style=filled,shape=box,color=lightblue]
+    RSA_Public_Key [style=filled,shape=box,color=lightblue]
+    device_flash [style=filled,shape=box,color=green]
+
+
+    // Certificate path
+    certificate [style=filled,shape=box,color=lightblue]
+    C_CreateObject->certificate 
+    certificate->device_flash
+
+    // private key paths
+    C_CreateObject->private_key 
+    private_key->mbedtls_pk_init 
+    mbedtls_pk_init->mbedtls_pk_parse_key 
+
+    // EC
+    mbedtls_pk_parse_key->EC_Private_Key
+    EC_Private_Key->mbedtls_ecp_keypair_init
+    mbedtls_ecp_keypair_init->mbedtls_ecp_group_init
+    mbedtls_ecp_group_init->mbedtls_ecp_group_load
+    mbedtls_ecp_group_load->mbedtls_mpi_read_binary
+    mbedtls_mpi_read_binary->mbedtls_pk_write_key_der
+    mbedtls_pk_write_key_der->device_flash
+
+    //RSA
+    mbedtls_pk_parse_key->RSA_Private_Key
+    RSA_Private_Key->mbedtls_rsa_init
+    mbedtls_rsa_init->mbedtls_rsa_import_raw
+    mbedtls_rsa_import_raw->mbedtls_mpi_read_binary
+    mbedtls_mpi_read_binary->mbedtls_pk_write_key_der
+    mbedtls_pk_write_key_der->device_flash
+
+    // public key paths
+    C_CreateObject->public_key 
+    public_key->mbedtls_pk_init
+    public_key->mbedtls_pk_parse_public_key
+
+    // EC
+    mbedtls_pk_parse_public_key->EC_Public_Key
+    EC_Public_Key->mbedtls_ecp_keypair_init
+    mbedtls_ecp_keypair_init->mbedtls_ecp_group_init
+    mbedtls_ecp_group_init->mbedtls_ecp_group_load
+    mbedtls_ecp_group_load->mbedtls_mpi_read_binary
+    mbedtls_mpi_read_binary->mbedtls_pk_write_pubkey_der
+    mbedtls_pk_write_pubkey_der->device_flash
+
+    //RSA
+    mbedtls_pk_parse_public_key->RSA_Public_Key
+    RSA_Public_Key->mbedtls_rsa_init
+    mbedtls_rsa_init->mbedtls_rsa_import_raw
+    mbedtls_rsa_import_raw->mbedtls_pk_write_pubkey_der
+    mbedtls_pk_write_pubkey_der->device_flash
+
+    // C_GetAttributevalue
+    C_GetAttributeValue [style=filled,shape=box,color=red]
+    mbedtls_pk_init2 [label="mbedtls_pk_init"]
+    mbedtls_pk_free2 [label="mbedtls_pk_free"]
+    mbedtls_pk_parse_key2 [label="mbedtls_pk_parse_key"]
+    mbedtls_pk_parse_public_key2 [label="mbedtls_pk_parse_public_key"]
+
+    // Key related flows 
+    C_GetAttributeValue->mbedtls_pk_init2
+    mbedtls_pk_init2->mbedtls_pk_parse_key2
+    mbedtls_pk_init2->mbedtls_pk_parse_public_key2
+    mbedtls_pk_parse_public_key2->mbedtls_ecp_tls_write_point
+
+    // Used to check if object is a certificate
+    mbedtls_x509_crt_init->mbedtls_x509_crt_parse
+    C_GetAttributeValue->mbedtls_x509_crt_init
+ 
+
+    // Used to get key type
+    C_GetAttributeValue->mbedtls_pk_get_type
+
+    // clean up
+    mbedtls_pk_init2->mbedtls_pk_free2
+    mbedtls_pk_init2->mbedtls_x509_crt_free
+
+    // C_DigestInit
+    C_DigestInit [style=filled,shape=box,color=red]
+    C_DigestInit->mbedtls_sha256_init
+    mbedtls_sha256_init->mbedtls_sha256_starts_ret
+
+    // C_DigestUpdate
+    C_DigestUpdate [style=filled,shape=box,color=red]
+    C_DigestUpdate->mbedtls_sha256_update_ret
+
+    // C_DigestFinal
+    C_DigestFinal [style=filled,shape=box,color=red]
+    mbedtls_sha256_free2 [label="mbedtls_sha256_free"]
+    C_DigestFinal->mbedtls_sha256_finish_ret
+    mbedtls_sha256_finish_ret->mbedtls_sha256_free2
+
+    // C_SignInit
+    C_SignInit [style=filled,shape=box,color=red]
+    mbedtls_pk_init3 [label="mbedtls_pk_init"]
+    mbedtls_pk_free3 [label="mbedtls_pk_free"]
+    mbedtls_pk_parse_key3 [label="mbedtls_pk_parse_key"]
+    mbedtls_pk_get_type3 [label="mbedtls_pk_get_type"]
+    PKI_mbedTLSSignatureToPkcs11Signature [label="mbedtls_sig_to_pkcs11_format"]
+    
+    C_SignInit->mbedtls_pk_init3
+    mbedtls_pk_init3->mbedtls_pk_parse_key3
+    mbedtls_pk_parse_key3->mbedtls_pk_get_type3
+    mbedtls_pk_get_type3->mbedtls_pk_free3
+
+    // C_Sign
+    C_Sign [style=filled,shape=box,color=red]
+    
+    C_Sign->mbedtls_pk_sign
+    mbedtls_pk_sign->PKI_mbedTLSSignatureToPkcs11Signature
+
+    // C_VerifyInit
+    C_VerifyInit [style=filled,shape=box,color=red]
+    mbedtls_pk_init4 [label="mbedtls_pk_init"]
+    mbedtls_pk_free4 [label="mbedtls_pk_free"]
+    mbedtls_pk_parse_key4 [label="mbedtls_pk_parse_public_key"]
+    mbedtls_pk_get_type4 [label="mbedtls_pk_get_type"]
+    
+    C_VerifyInit->mbedtls_pk_init4
+    mbedtls_pk_init4->mbedtls_pk_parse_key4
+    mbedtls_pk_parse_key4->mbedtls_pk_get_type4
+    mbedtls_pk_get_type4->mbedtls_pk_free4
+
+    // C_Verify
+    C_Verify [style=filled,shape=box,color=red]
+    C_Verify->mbedtls_pk_verify
+
+    // C_GenerateKeyPair
+    C_GenerateKeyPair [style=filled,shape=box,color=red]
+    device_flash2 [style=filled,shape=box,color=green,label="device_flash"]
+    mbedtls_pk_init5 [label="mbedtls_pk_init"]
+    mbedtls_pk_setup5 [label="mbedtls_pk_setup"]
+    mbedtls_pk_write_pubkey_der2 [label="mbedtls_pk_write_pubkey_der"]
+    mbedtls_pk_write_key_der2 [label="mbedtls_pk_write_key_der"]
+
+    C_GenerateKeyPair->mbedtls_pk_init5
+    mbedtls_pk_init5->mbedtls_pk_setup5
+    mbedtls_pk_setup5->mbedtls_ecp_gen_key
+    mbedtls_ecp_gen_key->mbedtls_pk_write_pubkey_der2
+    mbedtls_ecp_gen_key->mbedtls_pk_write_key_der2
+    mbedtls_pk_write_key_der2->device_flash2
+    mbedtls_pk_write_pubkey_der2->device_flash2
+}

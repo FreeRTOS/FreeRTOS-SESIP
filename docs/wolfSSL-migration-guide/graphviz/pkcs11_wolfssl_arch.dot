@@ -1,0 +1,112 @@
+digraph core_pkcs11_mbedtls {
+    node [shape=circle,
+      fixedsize=true,
+      width=2.0,
+      color="black", 
+      fillcolor="#eeeeee",
+      style="filled,solid",
+      fontsize=12]
+    // C_Initialize
+    C_Initialize [style=filled,shape=box,color=red]
+    C_Initialize->wc_InitRng 
+
+    // C_Finalize
+    C_Finalize [style=filled,shape=box,color=red]
+    C_Finalize->wc_FreeRng 
+
+    // C_CloseSession
+    C_CloseSession [style=filled,shape=box,color=red]
+    C_CloseSession->wc_Sha256Free 
+
+    // C_CreateObject
+    C_CreateObject [style=filled,shape=box,color=red]
+    private_key [style=filled,shape=box,color=lightblue]
+    public_key [style=filled,shape=box,color=lightblue]
+    EC_Private_Key [style=filled,shape=box,color=lightblue]
+    EC_Public_Key [style=filled,shape=box,color=lightblue]
+    RSA_Private_Key [style=filled,shape=box,color=lightblue]
+    RSA_Public_Key [style=filled,shape=box,color=lightblue]
+    device_flash [style=filled,shape=box,color=green]
+
+
+    // Certificate path
+    certificate [style=filled,shape=box,color=lightblue]
+    C_CreateObject->certificate 
+    certificate->device_flash
+
+    // private key paths
+    C_CreateObject->private_key 
+
+    // EC
+    private_key->EC_Private_Key
+    EC_Private_Key->mp_read_unsigned_bin
+    mp_read_unsigned_bin->wc_ecc_import_raw
+    wc_ecc_import_raw->wc_EccKeyToDer
+    wc_EccKeyToDer->device_flash
+
+    //RSA
+    private_key->RSA_Private_Key
+    RSA_Private_Key->mp_read_unsigned_bin
+    mp_read_unsigned_bin->wc_RsaPublicKeyDecodeRaw
+    wc_RsaPublicKeyDecodeRaw->wc_RsaKeyToDer
+    wc_RsaKeyToDer->device_flash
+
+    // public key paths
+    C_CreateObject->public_key 
+
+    // EC
+    public_key->EC_Public_Key
+    EC_Public_Key->mp_read_unsigned_bin
+    mp_read_unsigned_bin->wc_ecc_import_raw
+    wc_ecc_import_raw->wc_PemPubKeyToDer
+    wc_PemPubKeyToDer->device_flash
+
+    //RSA
+    public_key->RSA_Public_Key
+    RSA_Public_Key->mp_read_unsigned_bin
+    mp_read_unsigned_bin->wc_RsaPublicKeyDecodeRaw
+    wc_RsaPublicKeyDecodeRaw->wc_PemPubKeyToDer
+    wc_PemPubKeyToDer->device_flash
+
+    // C_GetAttributevalue
+    C_GetAttributeValue [style=filled,shape=box,color=red]
+    EC_PublicKey2 [label="EC_Public_Key"]
+
+    // Key related flows 
+    C_GetAttributeValue->EC_PublicKey2
+    EC_PublicKey2->wc_ecc_export_point_der
+
+    // C_DigestInit
+    C_DigestInit [style=filled,shape=box,color=red]
+    C_DigestInit->InitSha256
+
+    // C_DigestUpdate
+    C_DigestUpdate [style=filled,shape=box,color=red]
+    C_DigestUpdate->Sha256Update
+
+    // C_DigestFinal
+    C_DigestFinal [style=filled,shape=box,color=red]
+    wc_Sha256Free2 [label="wc_Sha256Free"]
+    C_DigestFinal->Sha256Final
+    Sha256Final->wc_Sha256Free2
+
+    // C_Sign
+    C_Sign [style=filled,shape=box,color=red]
+    C_Sign->wc_SignatureGenerate
+
+    // C_Verify
+    C_Verify [style=filled,shape=box,color=red]
+    C_Verify->wc_SignatureVerify
+
+    // C_GenerateKeyPair
+    C_GenerateKeyPair [style=filled,shape=box,color=red]
+    device_flash2 [style=filled,shape=box,color=green,label="device_flash"]
+    wc_PemPubKeyToDer2 [label="wc_PemPubKeyToDer"]
+    wc_EccKeyToDer2 [label="wc_EccKeyToDer"]
+
+    C_GenerateKeyPair->wc_ecc_make_key_ex
+    wc_ecc_make_key_ex->wc_PemPubKeyToDer2
+    wc_ecc_make_key_ex->wc_EccKeyToDer2
+    wc_PemPubKeyToDer2->device_flash2
+    wc_EccKeyToDer2->device_flash2
+}
