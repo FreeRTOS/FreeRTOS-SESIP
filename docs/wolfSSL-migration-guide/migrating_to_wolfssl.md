@@ -1,4 +1,4 @@
-# FreeRTOS with mbedTLS to FreeRTOS with wolfSSL Migration Guide
+# FreeRTOS with mbedTLS to FreeRTOS with wolfSSL Migration Guide v1.0
 
 mbed TLS is a TLS and crypto implementation currently used with FreeRTOS to establish connections to AWS Iot Core.
 Documentation can be found on their [website](https://tls.mbed.org/) and currently FreeRTOS is tested with [mbedtls-2.16.8](https://github.com/ARMmbed/mbedtls/releases/tag/mbedtls-2.16.8). AWS IoT Core TLS requirements can be found in the AWS IoT Core [developer guide](https://docs.aws.amazon.com/iot/latest/developerguide/what-is-aws-iot.html). 
