@@ -6,11 +6,11 @@ This project is an example of a IoT application using FreeRTOS.
 ### Step1 Clone the repository to your local machine
 To clone using HTTPS:
 ```
-git clone https://github.com/FuschiaPlatinumFoxTerrier/SESIP_Demo --recurse-submodules
+git clone https://github.com/FreeRTOS/Lab-Project-FreeRTOS-SESIP.git --recurse-submodules
 ```
 Using SSH:
 ```
-git clone git@github.com:FuschiaPlatinumFoxTerrier/SESIP_Demo --recurse-submodules
+git clone https://github.com/FreeRTOS/Lab-Project-FreeRTOS-SESIP.git --recurse-submodules
 ```
 
 If you have downloaded the repo without using the --recurse-submodules argument, or you just want to update the submodules you need to run:
