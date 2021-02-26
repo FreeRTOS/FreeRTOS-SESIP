@@ -8,8 +8,3 @@ Follow the steps in the [documentation](https://github.com/FreeRTOS/Lab-Project-
 ### Getting help
 If you have any questions or need assistance troubleshooting your FreeRTOS project, we have an active community that can help on the [FreeRTOS Community Support Forum](https://forums.freertos.org). Please also refer to [FAQ](http://www.freertos.org/FAQHelp.html) for frequently asked questions.
 
-
-# Provisioning
-In order to connect to AWS IoT Core, devices must be provisioned with a certificate and private key that authenticates it to IoT Core.
-
-For a guide and script to provision your device, please read the [README](tools/README.md) in the tools directory.
