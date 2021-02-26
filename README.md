@@ -1,5 +1,5 @@
 ## Introduction
-This project is an example of a IoT application using FreeRTOS.
+This project is an example of a IoT application using FreeRTOS.  This project was used to achieve SESIP certification for the FreeRTOS kernel.
 
 ## Getting started
 
