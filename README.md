@@ -3,29 +3,7 @@ This project is an example of a IoT application using FreeRTOS.  This project wa
 
 ## Getting started
 
-### Step1 Clone the repository to your local machine
-To clone using HTTPS:
-```
-git clone https://github.com/FreeRTOS/Lab-Project-FreeRTOS-SESIP.git --recurse-submodules
-```
-Using SSH:
-```
-git clone https://github.com/FreeRTOS/Lab-Project-FreeRTOS-SESIP.git --recurse-submodules
-```
-
-If you have downloaded the repo without using the --recurse-submodules argument, or you just want to update the submodules you need to run:
-
-git submodule update --init --recursive
-
-
-### Step2 Download and install MCUExpresso
-
-You can set up your build environment following the instructions at https://docs.aws.amazon.com/freertos/latest/userguide/getting_started_nxp.html for this board.
-
-Under the section "Build and run the FreeRTOS Demo project" you will want to import this project instead of the one in that guide. The project files for this project are located in the root, so you should be able to just import from the root folder which should be called SESIP_Demo
-
-
-Additionally, for FreeRTOS kernel feature information refer to the [Developer Documentation](https://www.freertos.org/features.html), and [API Reference](https://www.freertos.org/a00106.html).
+Follow the steps in the [documentation](https://github.com/FreeRTOS/Lab-Project-FreeRTOS-SESIP/tree/main/docs/README.md) to see this demo operate.
 
 ### Getting help
 If you have any questions or need assistance troubleshooting your FreeRTOS project, we have an active community that can help on the [FreeRTOS Community Support Forum](https://forums.freertos.org). Please also refer to [FAQ](http://www.freertos.org/FAQHelp.html) for frequently asked questions.
