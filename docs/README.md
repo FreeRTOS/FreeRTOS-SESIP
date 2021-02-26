@@ -35,27 +35,27 @@ If you have any questions or need assistance troubleshooting your FreeRTOS proje
 The repository structure is as follows:
 
 Lab-Project-FreeRTOS-SESIP
-├── docs                                       *Documentation*
-│   └── wolfSSL-migration-guide                *How to convert from MBED-TLS to wolfSSL for pkcs11*
-├── lib                                        *Libraries used to build this project*
-│   ├── FreeRTOS                               *Libraries provided by FreeRTOS*
-│   │   ├── FreeRTOS-Kernel                    *FreeRTOS Kernel*
-│   │   ├── FreeRTOS-Plus-TCP                  *FreeRTOS TCP/IP stack*
-│   │   ├── FreeRTOS-Plus-Trace                *FreeRTOS Trace interface*
-│   │   ├── Logging                            *Simple UART Logging library*
-│   │   ├── coreMQTT                           *MQTT*
-│   │   ├── corePKCS11                         *PKCS11 interface*
-│   │   ├── ota-for-aws-iot-embedded-sdk       *AWS OTA Library*
-│   │   ├── platform                           *Platform Interfaces for TLS & PKCS11*
-│   │   └── provision                          *Interface to AWS provisioning scripts*
-│   ├── bootloader                             *NXP Bootloader*
-│   ├── mbedtls                                *MBEDTLS*
-│   ├── nxp                                    *NXP HAL's and platform interfaces*
-│   └── pkcs11                                 *PKCS11*
-├── linkscripts                                *linker scripts for this application including MPU partitions*
-├── source                                     *The application*
-│   └── user                                   *MPU User level code for the application*
-└── tools                                      *Provisioning scripts for AWS & Bootloading
+├── docs                                       *Documentation*  
+│   └── wolfSSL-migration-guide                *How to convert from MBED-TLS to wolfSSL for pkcs11*  
+├── lib                                        *Libraries used to build this project*  
+│   ├── FreeRTOS                               *Libraries provided by FreeRTOS*  
+│   │   ├── FreeRTOS-Kernel                    *FreeRTOS Kernel*  
+│   │   ├── FreeRTOS-Plus-TCP                  *FreeRTOS TCP/IP stack*  
+│   │   ├── FreeRTOS-Plus-Trace                *FreeRTOS Trace interface*  
+│   │   ├── Logging                            *Simple UART Logging library*  
+│   │   ├── coreMQTT                           *MQTT*  
+│   │   ├── corePKCS11                         *PKCS11 interface*  
+│   │   ├── ota-for-aws-iot-embedded-sdk       *AWS OTA Library*  
+│   │   ├── platform                           *Platform Interfaces for TLS & PKCS11*  
+│   │   └── provision                          *Interface to AWS provisioning scripts*  
+│   ├── bootloader                             *NXP Bootloader*  
+│   ├── mbedtls                                *MBEDTLS*  
+│   ├── nxp                                    *NXP HAL's and platform interfaces*  
+│   └── pkcs11                                 *PKCS11*  
+├── linkscripts                                *linker scripts for this application including MPU partitions*  
+├── source                                     *The application*  
+│   └── user                                   *MPU User level code for the application*  
+└── tools                                      *Provisioning scripts for AWS & Bootloading*  
 
 ### FreeRTOS sources
 All of the FreeRTOS components are included the lib/FreeRTOS directory of this repo.  Most of these components are submoduled into this project to facilitate an applicate first project organization.  The links below are to the root of each library.  The version submoduled will be a released version for the SESIP certification.
