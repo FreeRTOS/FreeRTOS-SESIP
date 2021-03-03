@@ -56,6 +56,9 @@
 
 #include "ota_pal.h"
 
+/* Include for getting provisioned thing name. */
+#include "provision_interface.h"
+
 /*-----------------------------------------------------------*/
 
 /**
@@ -721,7 +724,7 @@ BaseType_t xStartOTAUpdateDemo( void )
 
     char * pThingName = NULL;
 
-    size_t thingNameLength;
+    uint32_t thingNameLength;
 
     CK_RV pkcsllRet;
 

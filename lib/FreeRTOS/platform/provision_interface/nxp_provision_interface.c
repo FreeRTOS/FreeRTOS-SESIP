@@ -180,7 +180,6 @@ static CK_RV prvProvisionOtaSigning( void )
 {
     CK_RV xResult = CKR_OK;
     CK_ULONG ulSize = 0;
-    CK_OBJECT_HANDLE xHandle = CK_INVALID_HANDLE;
     CK_BYTE_PTR pxOtaKey = NULL;
 
     pxOtaKey = pvPortMalloc( CERTIFICATE_SIZE );
@@ -197,7 +196,7 @@ static CK_RV prvProvisionOtaSigning( void )
             xProvisionPublicKey( pxOtaKey, 
                     ulSize + 1, /* Increased to add a NULL terminator. */
                     CKK_EC,
-                    pkcs11configLABEL_CODE_VERIFICATION_KEY, 
+                    ( CK_BYTE_PTR ) pkcs11configLABEL_CODE_VERIFICATION_KEY,
                     sizeof( pkcs11configLABEL_CODE_VERIFICATION_KEY ) );
 
             if( xResult != CKR_OK )
@@ -279,7 +278,7 @@ static void prvProvision( void )
         {
             LogInfo( ( "Successfully read cert from UART. Will now try to provision certificate with PKCS #11." ) );
             LogInfo( ( "Received:\n %s", pucCert ) );
-            xProvisionCert( pucCert, ulCertSize, pkcs11configLABEL_DEVICE_CERTIFICATE_FOR_TLS, sizeof( pkcs11configLABEL_DEVICE_CERTIFICATE_FOR_TLS ) );
+            xProvisionCert( pucCert, ulCertSize, ( CK_BYTE_PTR ) pkcs11configLABEL_DEVICE_CERTIFICATE_FOR_TLS, sizeof( pkcs11configLABEL_DEVICE_CERTIFICATE_FOR_TLS ) );
             vPortFree( pucCert );
         }
     }
@@ -332,7 +331,7 @@ CK_RV ulGetThingName( char ** pcThingName,
 
     if( pxThingName[ 0 ] == 0x00 )
     {
-        xHandle = PKCS11_PAL_FindObject( FILENAME_AWS_THING_NAME, sizeof( FILENAME_AWS_THING_NAME ) );
+        xHandle = PKCS11_PAL_FindObject( ( CK_BYTE_PTR ) FILENAME_AWS_THING_NAME, sizeof( FILENAME_AWS_THING_NAME ) );
 
         if( xHandle != CK_INVALID_HANDLE )
         {
@@ -369,7 +368,7 @@ CK_RV ulGetThingEndpoint( char ** pcThingEndpoint,
 
     if( pxThingEndpoint[ 0 ] == 0x00 )
     {
-        xHandle = PKCS11_PAL_FindObject( FILENAME_AWS_ENDPOINT, sizeof( FILENAME_AWS_ENDPOINT ) );
+        xHandle = PKCS11_PAL_FindObject( ( CK_BYTE_PTR ) FILENAME_AWS_ENDPOINT, sizeof( FILENAME_AWS_ENDPOINT ) );
 
         if( xHandle != CK_INVALID_HANDLE )
         {

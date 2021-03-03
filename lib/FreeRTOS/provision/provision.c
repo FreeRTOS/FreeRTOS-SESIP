@@ -91,6 +91,12 @@ static const char * pNoLowLevelMbedTlsCodeStr = "<No-Low-Level-Code>";
     ( mbedtls_strerror_lowlevel( mbedTlsCode ) != NULL ) ? \
     mbedtls_strerror_lowlevel( mbedTlsCode ) : pNoLowLevelMbedTlsCodeStr
 
+
+extern int convert_pem_to_der( const unsigned char * pucInput,
+                        size_t xLen,
+                        unsigned char * pucOutput,
+                        size_t * pxOlen );
+
 static CK_RV xCreateDeviceKeyPair( CK_SESSION_HANDLE xSession,
                                    uint8_t * pucPrivateKeyLabel,
                                    uint8_t * pucPublicKeyLabel,
@@ -151,19 +157,19 @@ static CK_RV xCreateDeviceKeyPair( CK_SESSION_HANDLE xSession,
     return xResult;
 }
 
-static int32_t privateKeySigningCallback( void * pvContext,
+static int privateKeySigningCallback( void * pvContext,
                                           mbedtls_md_type_t xMdAlg,
                                           const unsigned char * pucHash,
                                           size_t xHashLen,
                                           unsigned char * pucSig,
                                           size_t * pxSigLen,
-                                          int32_t ( * piRng )( void *,
+                                          int ( * piRng )( void *,
                                                                unsigned char *,
                                                                size_t ),
                                           void * pvRng )
 {
     CK_RV xResult = CKR_OK;
-    int32_t lFinalResult = 0;
+    int lFinalResult = 0;
     CK_MECHANISM xMech = { 0 };
 
     xMech.mechanism = CKM_ECDSA;
@@ -538,7 +544,7 @@ CK_RV xProvisionCert( CK_BYTE_PTR xCert,
     xCertificateTemplate.xValue.ulValueLen = ( CK_ULONG ) xCertLen;
     xCertificateTemplate.xLabel.type = CKA_LABEL;
     xCertificateTemplate.xLabel.pValue = xCertLabel;
-    xCertificateTemplate.xLabel.ulValueLen = strlen( xCertLabelLen );
+    xCertificateTemplate.xLabel.ulValueLen = xCertLabelLen;
     xCertificateTemplate.xCertificateType.type = CKA_CERTIFICATE_TYPE;
     xCertificateTemplate.xCertificateType.pValue = &xCertificateType;
     xCertificateTemplate.xCertificateType.ulValueLen = sizeof( CK_CERTIFICATE_TYPE );

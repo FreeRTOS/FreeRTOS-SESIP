@@ -117,6 +117,8 @@ static void hello_task( void * pvParameters );
 
 extern void CRYPTO_InitHardware( void );
 
+
+extern void printRegions( void );
 /*******************************************************************************
  * Code
  ******************************************************************************/
@@ -278,6 +280,8 @@ static void hello_task( void * pvParameters )
     CK_RV xResult = CKR_OK;
     CK_ULONG ulTemp = 0;
     char * pcEndpoint = NULL;
+    char * pcThingName = NULL;
+    uint32_t thingNameLength;
     BaseType_t result;
 
     NetworkCredentials_t xNetworkCredentials = { 0 };
@@ -309,11 +313,16 @@ static void hello_task( void * pvParameters )
     status = MQTT_Init( &mqttContext, &transport, getTimeStampMs, eventCallback, &fixedBuffer );
 
     /* Client ID must be unique to broker. This field is required. */
-    xResult = ulGetThingName( &connectInfo.pClientIdentifier, &connectInfo.clientIdentifierLength );
+    xResult = ulGetThingName( &pcThingName, &thingNameLength );
     xResult = ulGetThingEndpoint( &pcEndpoint, &ulTemp );
 
     if( ( status == MQTTSuccess ) && ( xResult == CKR_OK ) )
     {
+
+        connectInfo.pClientIdentifier = pcThingName;
+
+        connectInfo.clientIdentifierLength = thingNameLength;
+
         /* True for creating a new session with broker, false if we want to resume an old one. */
         connectInfo.cleanSession = true;
 

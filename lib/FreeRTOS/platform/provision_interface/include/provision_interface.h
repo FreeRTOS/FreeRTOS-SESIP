@@ -30,8 +30,10 @@
  * This file defines an interface for provisioning over a UART.
  */
 
-#ifdef _PROVISION_INTERFACE_H_
+#ifndef _PROVISION_INTERFACE_H_
 #define _PROVISION_INTERFACE_H_
+
+#include "core_pkcs11.h"
 
 void vUartProvision( void );
 CK_RV ulGetThingName( char ** pcThingName, uint32_t * ulThingNameSize );

@@ -146,7 +146,7 @@ static TlsTransportStatus_t initMbedtls( void );
  *
  * @return Zero on success.
  */
-static int32_t generateRandomBytes( void * pvCtx,
+static int generateRandomBytes( void * pvCtx,
                                     unsigned char * pucRandom,
                                     size_t xRandomLength );
 
@@ -190,13 +190,13 @@ static CK_RV initializeClientKeys( SSLContext_t * pxCtx );
  *
  * @return Zero on success.
  */
-static int32_t privateKeySigningCallback( void * pvContext,
+static int privateKeySigningCallback( void * pvContext,
                                           mbedtls_md_type_t xMdAlg,
                                           const unsigned char * pucHash,
                                           size_t xHashLen,
                                           unsigned char * pucSig,
                                           size_t * pxSigLen,
-                                          int32_t ( * piRng )( void *,
+                                          int ( * piRng )( void *,
                                                                unsigned char *,
                                                                size_t ),
                                           void * pvRng );
@@ -487,7 +487,7 @@ static TlsTransportStatus_t initMbedtls( void )
 
 /*-----------------------------------------------------------*/
 
-static int32_t generateRandomBytes( void * pvCtx,
+static int generateRandomBytes( void * pvCtx,
                                     unsigned char * pucRandom,
                                     size_t xRandomLength )
 {
@@ -691,13 +691,13 @@ static CK_RV initializeClientKeys( SSLContext_t * pxCtx )
 
 /*-----------------------------------------------------------*/
 
-static int32_t privateKeySigningCallback( void * pvContext,
+static int privateKeySigningCallback( void * pvContext,
                                           mbedtls_md_type_t xMdAlg,
                                           const unsigned char * pucHash,
                                           size_t xHashLen,
                                           unsigned char * pucSig,
                                           size_t * pxSigLen,
-                                          int32_t ( * piRng )( void *,
+                                          int ( * piRng )( void *,
                                                                unsigned char *,
                                                                size_t ),
                                           void * pvRng )
@@ -779,6 +779,7 @@ static int32_t privateKeySigningCallback( void * pvContext,
     if( xResult != CKR_OK )
     {
         LogError( ( "Failed to sign message using PKCS #11 with error code %02X.", xResult ) );
+        lFinalResult = -1;
     }
 
     return lFinalResult;
@@ -911,13 +912,13 @@ void TLS_FreeRTOS_Disconnect( NetworkContext_t * pNetworkContext )
 
 /*-----------------------------------------------------------*/
 
-int32_t TLS_FreeRTOS_recv( NetworkContext_t * pNetworkContext,
+int32_t TLS_FreeRTOS_recv( const NetworkContext_t * pNetworkContext,
                            void * pBuffer,
                            size_t bytesToRecv )
 {
     int32_t tlsStatus = 0;
 
-    tlsStatus = ( int32_t ) mbedtls_ssl_read( &( pNetworkContext->sslContext.context ),
+    tlsStatus = ( int32_t ) mbedtls_ssl_read( ( mbedtls_ssl_context * ) &( pNetworkContext->sslContext.context ),
                                               pBuffer,
                                               bytesToRecv );
 
@@ -950,13 +951,13 @@ int32_t TLS_FreeRTOS_recv( NetworkContext_t * pNetworkContext,
 
 /*-----------------------------------------------------------*/
 
-int32_t TLS_FreeRTOS_send( NetworkContext_t * pNetworkContext,
+int32_t TLS_FreeRTOS_send( const NetworkContext_t * pNetworkContext,
                            const void * pBuffer,
                            size_t bytesToSend )
 {
     int32_t tlsStatus = 0;
 
-    tlsStatus = ( int32_t ) mbedtls_ssl_write( &( pNetworkContext->sslContext.context ),
+    tlsStatus = ( int32_t ) mbedtls_ssl_write( ( mbedtls_ssl_context * ) &( pNetworkContext->sslContext.context ),
                                                pBuffer,
                                                bytesToSend );
 

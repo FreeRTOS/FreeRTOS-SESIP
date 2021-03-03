@@ -4,6 +4,19 @@
 
 #include "fsl_debug_console.h"
 
+/**
+ * @brief Calls the port specific code to raise the privilege.
+ *
+ * @return pdFALSE if privilege was raised, pdTRUE otherwise.
+ */
+extern BaseType_t xPortRaisePrivilege( void );
+
+/**
+ * @brief If xRunningPrivileged is not pdTRUE, calls the port specific
+ * code to reset the privilege, otherwise does nothing.
+ */
+extern void vPortResetPrivilege( BaseType_t xRunningPrivileged );
+
 
 /* NXP PRINTF code resides somewhere in RAM that could be provided as accessible region, but it's simpler to
  * just run it as privileged */
@@ -31,7 +44,7 @@ extern uint32_t __SRAM_segment_end__[];
 
 void printRegions()
 {
-    uint32_t tmp = 0;
+    uint32_t * tmp = NULL;
     tmp = __privileged_functions_start__;
     tmp = __privileged_functions_end__;
     tmp = __FLASH_segment_start__;
