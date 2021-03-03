@@ -1,10 +1,43 @@
 /*
- * Copyright (c) 2015, Freescale Semiconductor, Inc.
- * Copyright 2016-2017 NXP
- * All rights reserved.
+ * Copyright (C) 2020 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
  *
- * SPDX-License-Identifier: BSD-3-Clause
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of
+ * this software and associated documentation files (the "Software"), to deal in
+ * the Software without restriction, including without limitation the rights to
+ * use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
+ * the Software, and to permit persons to whom the Software is furnished to do so,
+ * subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+ * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ *
+ * http://www.FreeRTOS.org
+ * http://aws.amazon.com/freertos
+ *
+ * 1 tab == 4 spaces!
  */
+
+/**
+ *
+ * @brief File shows a sample IoT application using FreeRTOS and the associated libraries.
+ *
+ * Application uses FreeRTOS TCP stack and mbedTLS to create a mutually authenticated TLS connection to AWS IoT.
+ * It uses corePKCS11 APIs pre-provisioning credentials, thing name and performing all crypto operations using the
+ * pre-provisioned credentials. Application creates a main task which loops and publishes HelloWorld messages over
+ * MQTT to AWS IoT core. It creates an OTA update demo task in the background which listens for incoming OTA jobs and
+ * downloads the new firmware image over MQTT protocol. The same underlying TCP connection is shared between the OTA
+ * demo and the MQTT demo. A light-weight MQTT agent is implemented to show how thread safety of MQTT APIs is handled
+ * across different tasks. Application also creates two restricted tasks, a Read-Write task and a Read-Only task which
+ * demonstrates MPU functionalities.
+ */
+
 
 /* FreeRTOS kernel includes. */
 #include "LPC54018.h"
@@ -46,12 +79,14 @@
  ******************************************************************************/
 
 /**
- * @brief Milliseconds per second.
+ * @brief Milliseconds per second macro used to convert ticks to milliseconds.
  */
 #define MILLISECONDS_PER_SECOND    ( 1000U )
 
 /**
- * @brief Milliseconds per FreeRTOS tick.
+ * @brief Milliseconds per FreeRTOS tick macro used to get the current tick in
+ * milliseconds for MQTT library.
+ *
  */
 #define MILLISECONDS_PER_TICK      ( MILLISECONDS_PER_SECOND / configTICK_RATE_HZ )
 
@@ -59,31 +94,16 @@
 /**
  * @brief MQTT incoming buffer size.
  * This is the buffer size to hold an incoming packet from MQTT connection. The
- * buffer size should be set to maximum as required by all MQTT applications including OTA.
+ * buffer size should be set to maximum expected size as required by all MQTT applications including OTA.
  */
 
 #define MQTT_INCOMING_BUFFER_SIZE    ( 2048 )
 
-static uint8_t buffer[ MQTT_INCOMING_BUFFER_SIZE ];
-static const uint8_t ucIPAddress[ 4 ] = { 192, 168, 1, 43 };
-static const uint8_t ucNetMask[ 4 ] = { 255, 255, 255, 0 };
-static const uint8_t ucGatewayAddress[ 4 ] = { 192, 168, 1, 1 };
-static const uint8_t ucDNSServerAddress[ 4 ] = { 192, 168, 1, 1 };
-static const uint8_t ucMACAddress[ 6 ] = { 0xDE, 0xAD, 0x00, 0xBE, 0xEF, 0x01 };
-
 /**
- * @brief Global entry time into the application to use as a reference timestamp
- * in the #prvGetTimeMs function. #prvGetTimeMs will always return the difference
- * between the current time and the global entry time. This will reduce the chances
- * of overflow for the 32 bit unsigned integer used for holding the timestamp.
+ * @brief ROOT CA used for mutual authentication of TLS connection with AWS IoT MQTT broker.
+ * Certificate is available publicly.
+ *  see: https://docs.aws.amazon.com/iot/latest/developerguide/server-authentication.html
  */
-static uint32_t ulGlobalEntryTimeMs;
-
-/**
- * @brief Semaphore used to synchronize publish complete callback.
- */
-static SemaphoreHandle_t publishSem;
-
 #define democonfigROOT_CA_PEM                                            \
     ""                                                                   \
     "-----BEGIN CERTIFICATE-----\n"                                      \
@@ -107,71 +127,106 @@ static SemaphoreHandle_t publishSem;
     "rqXRfboQnoZsG4q5WTP468SQvvG5\n"                                     \
     "-----END CERTIFICATE-----\n"
 
-/* Task priorities. */
+
+/**
+ * @brief Task priority of the MQTT Hello World task.
+ */
 #define hello_task_PRIORITY    ( configMAX_PRIORITIES - 1 )
 
-/*******************************************************************************
- * Prototypes
- ******************************************************************************/
+
+/**
+ * @brief MQTT hello world demo task.
+ * Task creates a secure TLS connection with MQTT broker, spawns OTA demo task
+ * and then keeps publishing messages in a loop at regular intervals. The task never
+ * exits the loop.
+ *
+ * @param[in] pvParameters The parameters for hello world task.
+ */
 static void hello_task( void * pvParameters );
 
+/**
+ * @brief Function to return current timestamp used by MQTT library.
+ * Function gets current tick value from FreeRTOS and converts it into milliseconds
+ * since the start of tick.
+ *
+ * @return Time since start of the tick in milliseconds.
+ *
+ */
+
+static uint32_t getTimeStampMs( void );
+
+/**
+ * @brief Callback executed when an MQTT packet is received by the library.
+ * This application defined callback is registered with MQTT library and invoked
+ * for every incoming packets. Callback first invokes MQTT agent handler function to
+ * check for any general ACK packets for Subscribe/Publish etc.. If the packet is not
+ * processed by MQTT agent, then its a publish packet and it calls each of the demos
+ * MQTT handler functions.
+ *
+ * @param[in] pContext The context defined by the application passed to MQTT library.
+ * @param[in] pPacketInfo Pointer to the packet info structure containing details of MQTT packet.
+ * @param[in] pDeserializedInfo Pointer to structure contained deserialized publish information.
+ *
+ */
+static void eventCallback( MQTTContext_t * pContext,
+                           MQTTPacketInfo_t * pPacketInfo,
+                           MQTTDeserializedInfo_t * pDeserializedInfo );
+
+/**
+ * @brief Callback indicating a publish has been successful.
+ * Callback will be invoked by MQTT agent upon successfully publishing a message and a
+ * PUBACK is received from the MQTT broker for the published message.
+ *
+ * @param[in] pOperation Pointer to the publish operation passed to the MQTT agent.
+ * @param[in] The status of the MQTT operation.
+ *
+ */
+static void publishCompleteCallback( struct MQTTOperation * pOperation,
+                                     MQTTStatus_t status );
+
+/**
+ * @brief Vendor provided function to initializes the cryptographic module.
+ */
 extern void CRYPTO_InitHardware( void );
 
-
+/**
+ * @brief Function used to dump the MPU memory regions allocated by linker script.
+ */
 extern void printRegions( void );
+
+
+/**
+ * @brief Static buffer used to receive an MQTT payload from broker.
+ * The same buffer is used by all the tasks using a shared MQTT connection, to recieve the MQTT
+ * payload. Hence it should be kept to the maximum expected MQTT payload size as required by all
+ * applications.
+ */
+static uint8_t ucBuffer[ MQTT_INCOMING_BUFFER_SIZE ];
+
+
+static const uint8_t ucIPAddress[ 4 ] = { 192, 168, 1, 43 };
+static const uint8_t ucNetMask[ 4 ] = { 255, 255, 255, 0 };
+static const uint8_t ucGatewayAddress[ 4 ] = { 192, 168, 1, 1 };
+static const uint8_t ucDNSServerAddress[ 4 ] = { 192, 168, 1, 1 };
+static const uint8_t ucMACAddress[ 6 ] = { 0xDE, 0xAD, 0x00, 0xBE, 0xEF, 0x01 };
+
+/**
+ * @brief Global entry time into the application to use as a reference timestamp
+ * in the #prvGetTimeMs function. #prvGetTimeMs will always return the difference
+ * between the current time and the global entry time. This will reduce the chances
+ * of overflow for the 32 bit unsigned integer used for holding the timestamp.
+ */
+static uint32_t ulGlobalEntryTimeMs;
+
+/**
+ * @brief Semaphore used to synchronize publish complete callback.
+ */
+static SemaphoreHandle_t xPublishCompleteSemaphore;
+
+
 /*******************************************************************************
  * Code
  ******************************************************************************/
-
-uint32_t uxRand()
-{
-    static CK_SESSION_HANDLE xSession = CK_INVALID_HANDLE;
-    CK_RV xResult = CKR_OK;
-    CK_BYTE ulBytes[ sizeof( uint32_t ) ] = { 0 };
-    uint32_t ulNumber = 0;
-    uint32_t i = 0;
-    BaseType_t xReturn = pdFALSE;
-
-    if( xSession == CK_INVALID_HANDLE )
-    {
-        xResult = xInitializePkcs11Session( &xSession );
-        configASSERT( xSession != CK_INVALID_HANDLE );
-        configASSERT( xResult == CKR_OK );
-    }
-
-    CK_FUNCTION_LIST_PTR pxP11FunctionList;
-
-    xResult = C_GetFunctionList( &pxP11FunctionList );
-    configASSERT( xResult == CKR_OK );
-
-    xResult = pxP11FunctionList->C_GenerateRandom( xSession, ulBytes, sizeof( uint32_t ) );
-
-    if( xResult != CKR_OK )
-    {
-        LogError( ( "Failed to generate a random number in RNG callback. "
-                    "C_GenerateRandom failed with %0x.", xResult ) );
-    }
-    else
-    {
-        for( i = 0; i < sizeof( uint32_t ); i++ )
-        {
-            ulNumber = ( ulNumber | ( ulBytes[ i ] ) ) << i;
-        }
-    }
-
-    if( xResult == CKR_OK )
-    {
-        xReturn = pdTRUE;
-    }
-
-    return xReturn;
-}
-
-BaseType_t xApplicationGetRandomNumber( uint32_t * pulNumber )
-{
-    *pulNumber = uxRand();
-    return pdTRUE;
-}
 
 
 /*!
@@ -218,11 +273,8 @@ int main( void )
     }
 }
 
-/*!
- * @brief Function to return current timestamp used by MQTT library.
- */
 
-uint32_t getTimeStampMs()
+static uint32_t getTimeStampMs( void )
 {
     TickType_t xTickCount = 0;
     uint32_t ulTimeMs = 0UL;
@@ -240,9 +292,9 @@ uint32_t getTimeStampMs()
     return ulTimeMs;
 }
 
-void eventCallback( MQTTContext_t * pContext,
-                    MQTTPacketInfo_t * pPacketInfo,
-                    MQTTDeserializedInfo_t * pDeserializedInfo )
+static void eventCallback( MQTTContext_t * pContext,
+                           MQTTPacketInfo_t * pPacketInfo,
+                           MQTTDeserializedInfo_t * pDeserializedInfo )
 {
     BaseType_t xResult;
 
@@ -261,37 +313,48 @@ void eventCallback( MQTTContext_t * pContext,
 static void publishCompleteCallback( struct MQTTOperation * pOperation,
                                      MQTTStatus_t status )
 {
-    xSemaphoreGive( publishSem );
+    xSemaphoreGive( xPublishCompleteSemaphore );
 }
 
 static void hello_task( void * pvParameters )
 {
-    MQTTContext_t mqttContext;
-    TransportInterface_t transport;
-    MQTTFixedBuffer_t fixedBuffer;
-    MQTTPublishInfo_t info;
-    MQTTOperation_t operation;
+    MQTTContext_t xMQTTContext = { 0 };
+    TransportInterface_t xTransport = { 0 };
+    MQTTFixedBuffer_t xFixedBuffer = { 0 };
+    MQTTPublishInfo_t xPublishInfo = { 0 };
+    MQTTOperation_t xPublishOperation = { 0 };
+    bool bSessionPresent = true;
+    MQTTConnectInfo_t xMQTTConnectInfo = { 0 };
+    MQTTStatus_t xMQTTStatus = MQTTSuccess;
 
-    MQTTStatus_t status;
-    TlsTransportStatus_t transportStatus;
-    NetworkContext_t someNetworkInterface = { 0 };
-    MQTTConnectInfo_t connectInfo;
-    bool sessionPresent = true;
-    CK_RV xResult = CKR_OK;
+
+    NetworkCredentials_t xNetworkCredentials = { 0 };
+    TlsTransportStatus_t xTransportStatus = TLS_TRANSPORT_SUCCESS;
+    NetworkContext_t xNetworkContext = { 0 };
+
+    HeapStats_t xHeapStats;
+
+
     CK_ULONG ulTemp = 0;
     char * pcEndpoint = NULL;
     char * pcThingName = NULL;
-    uint32_t thingNameLength;
-    BaseType_t result;
+    uint32_t ulThingNameLength;
+    CK_RV xPKCS11Result = CKR_OK;
 
-    NetworkCredentials_t xNetworkCredentials = { 0 };
+    int32_t lCounter = 0;
+    char cPayload[ 32 ] = { 0 };
+    size_t xPayloadLength;
+
+    BaseType_t xStatus;
+
+
 
     xNetworkCredentials.pRootCa = ( const unsigned char * ) democonfigROOT_CA_PEM;
     xNetworkCredentials.rootCaSize = sizeof( democonfigROOT_CA_PEM );
 
     /* Configure MQTT Context */
     /* Clear context. */
-    memset( ( void * ) &mqttContext, 0x00, sizeof( MQTTContext_t ) );
+    memset( ( void * ) &xMQTTContext, 0x00, sizeof( MQTTContext_t ) );
 
     while( FreeRTOS_IsNetworkUp() == pdFALSE )
     {
@@ -300,120 +363,115 @@ static void hello_task( void * pvParameters )
     }
 
     /* Set transport interface members. */
-    transport.pNetworkContext = &someNetworkInterface;
-    transport.send = TLS_FreeRTOS_send;
-    transport.recv = TLS_FreeRTOS_recv;
+    xTransport.pNetworkContext = &xNetworkContext;
+    xTransport.send = TLS_FreeRTOS_send;
+    xTransport.recv = TLS_FreeRTOS_recv;
 
     ulGlobalEntryTimeMs = getTimeStampMs();
 
     /* Set buffer members. */
-    fixedBuffer.pBuffer = buffer;
-    fixedBuffer.size = MQTT_INCOMING_BUFFER_SIZE;
+    xFixedBuffer.pBuffer = ucBuffer;
+    xFixedBuffer.size = MQTT_INCOMING_BUFFER_SIZE;
 
-    status = MQTT_Init( &mqttContext, &transport, getTimeStampMs, eventCallback, &fixedBuffer );
+    xMQTTStatus = MQTT_Init( &xMQTTContext, &xTransport, getTimeStampMs, eventCallback, &xFixedBuffer );
 
     /* Client ID must be unique to broker. This field is required. */
-    xResult = ulGetThingName( &pcThingName, &thingNameLength );
-    xResult = ulGetThingEndpoint( &pcEndpoint, &ulTemp );
+    xPKCS11Result = ulGetThingName( &pcThingName, &ulThingNameLength );
+    xPKCS11Result = ulGetThingEndpoint( &pcEndpoint, &ulTemp );
 
-    if( ( status == MQTTSuccess ) && ( xResult == CKR_OK ) )
+    if( ( xMQTTStatus == MQTTSuccess ) && ( xPKCS11Result == CKR_OK ) )
     {
+        xMQTTConnectInfo.pClientIdentifier = pcThingName;
 
-        connectInfo.pClientIdentifier = pcThingName;
-
-        connectInfo.clientIdentifierLength = thingNameLength;
+        xMQTTConnectInfo.clientIdentifierLength = ulThingNameLength;
 
         /* True for creating a new session with broker, false if we want to resume an old one. */
-        connectInfo.cleanSession = true;
+        xMQTTConnectInfo.cleanSession = true;
 
         /* The following fields are optional. */
         /* Value for keep alive. */
-        connectInfo.keepAliveSeconds = 60;
+        xMQTTConnectInfo.keepAliveSeconds = 60;
 
         /* Optional username and password. */
-        connectInfo.pUserName = "";
-        connectInfo.userNameLength = strlen( connectInfo.pUserName );
-        connectInfo.pPassword = "";
-        connectInfo.passwordLength = strlen( connectInfo.pPassword );
+        xMQTTConnectInfo.pUserName = "";
+        xMQTTConnectInfo.userNameLength = strlen( xMQTTConnectInfo.pUserName );
+        xMQTTConnectInfo.pPassword = "";
+        xMQTTConnectInfo.passwordLength = strlen( xMQTTConnectInfo.pPassword );
 
         FreeRTOS_debug_printf( ( "Attempting a connection\n" ) );
-        transportStatus = TLS_FreeRTOS_Connect( mqttContext.transportInterface.pNetworkContext, pcEndpoint, 8883, &xNetworkCredentials, 4000, 36000 );
+        xTransportStatus = TLS_FreeRTOS_Connect( xMQTTContext.transportInterface.pNetworkContext, pcEndpoint, 8883, &xNetworkCredentials, 4000, 36000 );
 
-        if( TLS_TRANSPORT_SUCCESS == transportStatus )
+        if( TLS_TRANSPORT_SUCCESS == xTransportStatus )
         {
             /* Send the connect packet. Use 100 ms as the timeout to wait for the CONNACK packet. */
-            status = MQTT_Connect( &mqttContext, &connectInfo, NULL, 100, &sessionPresent );
+            xMQTTStatus = MQTT_Connect( &xMQTTContext, &xMQTTConnectInfo, NULL, 100, &bSessionPresent );
 
-            TLS_FreeRTOS_SetRecvTimeout( mqttContext.transportInterface.pNetworkContext, 500 );
+            TLS_FreeRTOS_SetRecvTimeout( xMQTTContext.transportInterface.pNetworkContext, 500 );
 
-            if( status == MQTTSuccess )
+            if( xMQTTStatus == MQTTSuccess )
             {
-                result = MQTTAgent_Init( &mqttContext );
-                configASSERT( result == pdTRUE );
+                xStatus = MQTTAgent_Init( &xMQTTContext );
+                configASSERT( xStatus == pdTRUE );
 
-                publishSem = xSemaphoreCreateBinary();
-                configASSERT( publishSem != NULL );
+                xPublishCompleteSemaphore = xSemaphoreCreateBinary();
+                configASSERT( xPublishCompleteSemaphore != NULL );
 
                 #if ( OTA_UPDATE_ENABLED == 1 )
-                    result = xStartOTAUpdateDemo();
-                    configASSERT( result == pdTRUE );
+                    xStatus = xStartOTAUpdateDemo();
+                    configASSERT( xStatus == pdTRUE );
                 #endif
 
                 for( ; ; )
                 {
-                    static int counter = 0;
-                    char payload[ 32 ] = { 0 };
-
-                    int payload_length = snprintf( payload, sizeof( payload ), "Hello %d", counter++ );
+                    xPayloadLength = snprintf( cPayload, sizeof( cPayload ), "Hello %ld", lCounter++ );
 
                     /* Since we requested a clean session, this must be false */
-                    assert( sessionPresent == false );
+                    assert( bSessionPresent == false );
 
                     /* Do something with the connection. Publish some data. */
-                    info.qos = MQTTQoS0;
-                    info.dup = false;
-                    info.retain = false;
-                    info.pTopicName = "Test/Hello";
-                    info.topicNameLength = 10;
-                    info.pPayload = payload;
-                    info.payloadLength = payload_length;
+                    xPublishInfo.qos = MQTTQoS0;
+                    xPublishInfo.dup = false;
+                    xPublishInfo.retain = false;
+                    xPublishInfo.pTopicName = "Test/Hello";
+                    xPublishInfo.topicNameLength = 10;
+                    xPublishInfo.pPayload = cPayload;
+                    xPublishInfo.payloadLength = xPayloadLength;
 
-                    operation.type = MQTT_OP_PUBLISH;
-                    operation.info.pPublishInfo = &info;
-                    operation.callback = publishCompleteCallback;
+                    xPublishOperation.type = MQTT_OP_PUBLISH;
+                    xPublishOperation.info.pPublishInfo = &xPublishInfo;
+                    xPublishOperation.callback = publishCompleteCallback;
 
-                    MQTTAgent_Enqueue( &operation, portMAX_DELAY );
+                    MQTTAgent_Enqueue( &xPublishOperation, portMAX_DELAY );
 
-                    xSemaphoreTake( publishSem, portMAX_DELAY );
+                    xSemaphoreTake( xPublishCompleteSemaphore, portMAX_DELAY );
 
                     PRINTF( "Published helloworld.\r\n" );
 
                     vTaskDelay( pdMS_TO_TICKS( 5000 ) );
                 }
 
-                HeapStats_t heap_stats;
-                vPortGetHeapStats( &heap_stats );
-                FreeRTOS_debug_printf( ( "Available heap space              %d\n", heap_stats.xAvailableHeapSpaceInBytes ) );
-                FreeRTOS_debug_printf( ( "Largest Free Block                %d\n", heap_stats.xSizeOfLargestFreeBlockInBytes ) );
-                FreeRTOS_debug_printf( ( "Smallest Free Block               %d\n", heap_stats.xSizeOfSmallestFreeBlockInBytes ) );
-                FreeRTOS_debug_printf( ( "Number of Free Blocks             %d\n", heap_stats.xNumberOfFreeBlocks ) );
-                FreeRTOS_debug_printf( ( "Minimum Ever Free Bytes Remaining %d\n", heap_stats.xMinimumEverFreeBytesRemaining ) );
-                FreeRTOS_debug_printf( ( "Number of Successful Allocations  %d\n", heap_stats.xNumberOfSuccessfulAllocations ) );
-                FreeRTOS_debug_printf( ( "Number of Successful Frees        %d\n", heap_stats.xNumberOfSuccessfulFrees ) );
+                vPortGetHeapStats( &xHeapStats );
+                FreeRTOS_debug_printf( ( "Available heap space              %d\n", xHeapStats.xAvailableHeapSpaceInBytes ) );
+                FreeRTOS_debug_printf( ( "Largest Free Block                %d\n", xHeapStats.xSizeOfLargestFreeBlockInBytes ) );
+                FreeRTOS_debug_printf( ( "Smallest Free Block               %d\n", xHeapStats.xSizeOfSmallestFreeBlockInBytes ) );
+                FreeRTOS_debug_printf( ( "Number of Free Blocks             %d\n", xHeapStats.xNumberOfFreeBlocks ) );
+                FreeRTOS_debug_printf( ( "Minimum Ever Free Bytes Remaining %d\n", xHeapStats.xMinimumEverFreeBytesRemaining ) );
+                FreeRTOS_debug_printf( ( "Number of Successful Allocations  %d\n", xHeapStats.xNumberOfSuccessfulAllocations ) );
+                FreeRTOS_debug_printf( ( "Number of Successful Frees        %d\n", xHeapStats.xNumberOfSuccessfulFrees ) );
 
 
                 /* Disconnect */
-                MQTT_Disconnect( &mqttContext );
+                MQTT_Disconnect( &xMQTTContext );
             }
 
-            TLS_FreeRTOS_Disconnect( mqttContext.transportInterface.pNetworkContext );
+            TLS_FreeRTOS_Disconnect( xMQTTContext.transportInterface.pNetworkContext );
         }
 
-        else if( TLS_TRANSPORT_INVALID_PARAMETER == transportStatus )
+        else if( TLS_TRANSPORT_INVALID_PARAMETER == xTransportStatus )
         {
             FreeRTOS_debug_printf( ( "Error Connecting to server : bad parameter\n" ) );
         }
-        else if( TLS_TRANSPORT_CONNECT_FAILURE == transportStatus )
+        else if( TLS_TRANSPORT_CONNECT_FAILURE == xTransportStatus )
         {
             FreeRTOS_debug_printf( ( "Error Connecting to server : connect failure\n" ) );
         }
@@ -430,6 +488,10 @@ static void hello_task( void * pvParameters )
     }
 }
 
+/**
+ *  Called by FreeRTOS+TCP when the network connects or disconnects.  Disconnect
+ * events are only received if implemented in the MAC driver.
+ */
 void vApplicationIPNetworkEventHook( eIPCallbackEvent_t eNetworkEvent )
 {
     uint32_t ulIPAddress, ulNetMask, ulGatewayAddress, ulDNSServerAddress;
@@ -467,6 +529,65 @@ void vApplicationIPNetworkEventHook( eIPCallbackEvent_t eNetworkEvent )
     }
 }
 
+/**
+ * @brief Application defined random number generation function.
+ *
+ * The function is used by TCP/IP stack to generate initial sequence number or DHCP
+ * transaction number. The implementation uses mbedTLS port of PKCS11 to generate the random
+ * numbers.
+ */
+uint32_t uxRand( void )
+{
+    static CK_SESSION_HANDLE xSession = CK_INVALID_HANDLE;
+    CK_RV xResult = CKR_OK;
+    CK_BYTE ulBytes[ sizeof( uint32_t ) ] = { 0 };
+    uint32_t ulNumber = 0;
+    uint32_t i = 0;
+    BaseType_t xReturn = pdFALSE;
+
+    if( xSession == CK_INVALID_HANDLE )
+    {
+        xResult = xInitializePkcs11Session( &xSession );
+        configASSERT( xSession != CK_INVALID_HANDLE );
+        configASSERT( xResult == CKR_OK );
+    }
+
+    CK_FUNCTION_LIST_PTR pxP11FunctionList;
+
+    xResult = C_GetFunctionList( &pxP11FunctionList );
+    configASSERT( xResult == CKR_OK );
+
+    xResult = pxP11FunctionList->C_GenerateRandom( xSession, ulBytes, sizeof( uint32_t ) );
+
+    if( xResult != CKR_OK )
+    {
+        LogError( ( "Failed to generate a random number in RNG callback. "
+                    "C_GenerateRandom failed with %0x.", xResult ) );
+    }
+    else
+    {
+        for( i = 0; i < sizeof( uint32_t ); i++ )
+        {
+            ulNumber = ( ulNumber | ( ulBytes[ i ] ) ) << i;
+        }
+    }
+
+    if( xResult == CKR_OK )
+    {
+        xReturn = pdTRUE;
+    }
+
+    return xReturn;
+}
+
+
+
+/*
+ * Callback that provides the inputs necessary to generate a randomized TCP
+ * Initial Sequence Number per RFC 6528.  THIS IS ONLY A DUMMY IMPLEMENTATION
+ * THAT RETURNS A PSEUDO RANDOM NUMBER SO IS NOT INTENDED FOR USE IN PRODUCTION
+ * SYSTEMS.
+ */
 extern uint32_t ulApplicationGetNextSequenceNumber( uint32_t ulSourceAddress,
                                                     uint16_t usSourcePort,
                                                     uint32_t ulDestinationAddress,
@@ -480,8 +601,32 @@ extern uint32_t ulApplicationGetNextSequenceNumber( uint32_t ulSourceAddress,
     return uxRand();
 }
 
+/*
+ * Set *pulNumber to a random number, and return pdTRUE. When the random number
+ * generator is broken, it shall return pdFALSE.
+ * The macros ipconfigRAND32() and configRAND32() are not in use
+ * anymore in FreeRTOS+TCP.
+ *
+ * THIS IS ONLY A DUMMY IMPLEMENTATION THAT RETURNS A PSEUDO RANDOM NUMBER SO IS
+ * NOT INTENDED FOR USE IN PRODUCTION SYSTEMS.
+ */
+
+BaseType_t xApplicationGetRandomNumber( uint32_t * pulNumber )
+{
+    *pulNumber = uxRand();
+    return pdTRUE;
+}
 
 
+/**
+ *
+ * Called if a call to pvPortMalloc() fails because there is insufficient
+ * free memory available in the FreeRTOS heap.  pvPortMalloc() is called
+ * internally by FreeRTOS API functions that create tasks, queues, software
+ * timers, and semaphores.  The size of the FreeRTOS heap is set by the
+ * configTOTAL_HEAP_SIZE configuration constant in FreeRTOSConfig.h.
+ *
+ */
 void vApplicationMallocFailedHook( void )
 {
     PRINTF( "\n\nMALLOC FAIL\n\n" );
@@ -491,34 +636,34 @@ void vApplicationMallocFailedHook( void )
     }
 }
 
-#if ( configSUPPORT_STATIC_ALLOCATION == 1 )
 
-/* configUSE_STATIC_ALLOCATION is set to 1, so the application must provide an
+/**
+ *  configUSE_STATIC_ALLOCATION is set to 1, so the application must provide an
  * implementation of vApplicationGetIdleTaskMemory() to provide the memory that is
- * used by the Idle task. */
-    void vApplicationGetIdleTaskMemory( StaticTask_t ** ppxIdleTaskTCBBuffer,
-                                        StackType_t ** ppxIdleTaskStackBuffer,
-                                        uint32_t * pulIdleTaskStackSize )
-    {
-        /* If the buffers to be provided to the Idle task are declared inside this
-         * function then they must be declared static - otherwise they will be allocated on
-         * the stack and so not exists after this function exits. */
-        static StaticTask_t xIdleTaskTCB;
-        static StackType_t uxIdleTaskStack[ configMINIMAL_STACK_SIZE ];
+ * used by the Idle task.
+ */
+void vApplicationGetIdleTaskMemory( StaticTask_t ** ppxIdleTaskTCBBuffer,
+                                    StackType_t ** ppxIdleTaskStackBuffer,
+                                    uint32_t * pulIdleTaskStackSize )
+{
+    /* If the buffers to be provided to the Idle task are declared inside this
+     * function then they must be declared static - otherwise they will be allocated on
+     * the stack and so not exists after this function exits. */
+    static StaticTask_t xIdleTaskTCB;
+    static StackType_t uxIdleTaskStack[ configMINIMAL_STACK_SIZE ];
 
-        /* Pass out a pointer to the StaticTask_t structure in which the Idle
-         * task's state will be stored. */
-        *ppxIdleTaskTCBBuffer = &xIdleTaskTCB;
+    /* Pass out a pointer to the StaticTask_t structure in which the Idle
+     * task's state will be stored. */
+    *ppxIdleTaskTCBBuffer = &xIdleTaskTCB;
 
-        /* Pass out the array that will be used as the Idle task's stack. */
-        *ppxIdleTaskStackBuffer = uxIdleTaskStack;
+    /* Pass out the array that will be used as the Idle task's stack. */
+    *ppxIdleTaskStackBuffer = uxIdleTaskStack;
 
-        /* Pass out the size of the array pointed to by *ppxIdleTaskStackBuffer.
-         * Note that, as the array is necessarily of type StackType_t,
-         * configMINIMAL_STACK_SIZE is specified in words, not bytes. */
-        *pulIdleTaskStackSize = configMINIMAL_STACK_SIZE;
-    }
-    /*-----------------------------------------------------------*/
+    /* Pass out the size of the array pointed to by *ppxIdleTaskStackBuffer.
+     * Note that, as the array is necessarily of type StackType_t,
+     * configMINIMAL_STACK_SIZE is specified in words, not bytes. */
+    *pulIdleTaskStackSize = configMINIMAL_STACK_SIZE;
+}
 
 /**
  * @brief This is to provide the memory that is used by the RTOS daemon/time task.
@@ -527,27 +672,25 @@ void vApplicationMallocFailedHook( void )
  * implementation of vApplicationGetTimerTaskMemory() to provide the memory that is
  * used by the RTOS daemon/time task.
  */
-    void vApplicationGetTimerTaskMemory( StaticTask_t ** ppxTimerTaskTCBBuffer,
-                                         StackType_t ** ppxTimerTaskStackBuffer,
-                                         uint32_t * pulTimerTaskStackSize )
-    {
-        /* If the buffers to be provided to the Timer task are declared inside this
-         * function then they must be declared static - otherwise they will be allocated on
-         * the stack and so not exists after this function exits. */
-        static StaticTask_t xTimerTaskTCB;
-        static StackType_t uxTimerTaskStack[ configTIMER_TASK_STACK_DEPTH ];
+void vApplicationGetTimerTaskMemory( StaticTask_t ** ppxTimerTaskTCBBuffer,
+                                     StackType_t ** ppxTimerTaskStackBuffer,
+                                     uint32_t * pulTimerTaskStackSize )
+{
+    /* If the buffers to be provided to the Timer task are declared inside this
+     * function then they must be declared static - otherwise they will be allocated on
+     * the stack and so not exists after this function exits. */
+    static StaticTask_t xTimerTaskTCB;
+    static StackType_t uxTimerTaskStack[ configTIMER_TASK_STACK_DEPTH ];
 
-        /* Pass out a pointer to the StaticTask_t structure in which the Idle
-         * task's state will be stored. */
-        *ppxTimerTaskTCBBuffer = &xTimerTaskTCB;
+    /* Pass out a pointer to the StaticTask_t structure in which the Idle
+     * task's state will be stored. */
+    *ppxTimerTaskTCBBuffer = &xTimerTaskTCB;
 
-        /* Pass out the array that will be used as the Timer task's stack. */
-        *ppxTimerTaskStackBuffer = uxTimerTaskStack;
+    /* Pass out the array that will be used as the Timer task's stack. */
+    *ppxTimerTaskStackBuffer = uxTimerTaskStack;
 
-        /* Pass out the size of the array pointed to by *ppxTimerTaskStackBuffer.
-         * Note that, as the array is necessarily of type StackType_t,
-         * configMINIMAL_STACK_SIZE is specified in words, not bytes. */
-        *pulTimerTaskStackSize = configTIMER_TASK_STACK_DEPTH;
-    }
-    /*-----------------------------------------------------------*/
-#endif /* if ( configSUPPORT_STATIC_ALLOCATION == 1 ) */
+    /* Pass out the size of the array pointed to by *ppxTimerTaskStackBuffer.
+     * Note that, as the array is necessarily of type StackType_t,
+     * configMINIMAL_STACK_SIZE is specified in words, not bytes. */
+    *pulTimerTaskStackSize = configTIMER_TASK_STACK_DEPTH;
+}
