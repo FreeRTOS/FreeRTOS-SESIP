@@ -68,6 +68,15 @@
 			</matcher>
 		</filter>
 		<filter>
+			<id>1614803801771</id>
+			<name>lib/AWS/ota-for-aws-iot-embedded-sdk</name>
+			<type>10</type>
+			<matcher>
+				<id>org.eclipse.ui.ide.multiFilter</id>
+				<arguments>1.0-name-matches-false-false-test</arguments>
+			</matcher>
+		</filter>
+		<filter>
 			<id>1614732443323</id>
 			<name>lib/FreeRTOS/FreeRTOS-Plus-TCP</name>
 			<type>10</type>
@@ -106,15 +115,6 @@
 		<filter>
 			<id>1604083946033</id>
 			<name>lib/FreeRTOS/crypto</name>
-			<type>10</type>
-			<matcher>
-				<id>org.eclipse.ui.ide.multiFilter</id>
-				<arguments>1.0-name-matches-false-false-test</arguments>
-			</matcher>
-		</filter>
-		<filter>
-			<id>1607411051267</id>
-			<name>lib/FreeRTOS/ota-for-aws-iot-embedded-sdk</name>
 			<type>10</type>
 			<matcher>
 				<id>org.eclipse.ui.ide.multiFilter</id>
@@ -212,8 +212,8 @@
 			</matcher>
 		</filter>
 		<filter>
-			<id>1607411142000</id>
-			<name>lib/FreeRTOS/ota-for-aws-iot-embedded-sdk/source/dependency/coreJSON</name>
+			<id>1614803896901</id>
+			<name>lib/AWS/ota-for-aws-iot-embedded-sdk/source/dependency/coreJSON</name>
 			<type>10</type>
 			<matcher>
 				<id>org.eclipse.ui.ide.multiFilter</id>
@@ -221,12 +221,21 @@
 			</matcher>
 		</filter>
 		<filter>
-			<id>1607411274505</id>
-			<name>lib/FreeRTOS/ota-for-aws-iot-embedded-sdk/source/portable/os</name>
-			<type>6</type>
+			<id>1614803873453</id>
+			<name>lib/AWS/ota-for-aws-iot-embedded-sdk/source/portable/os</name>
+			<type>5</type>
 			<matcher>
 				<id>org.eclipse.ui.ide.multiFilter</id>
-				<arguments>1.0-name-matches-false-false-ota_os_posix*</arguments>
+				<arguments>1.0-name-matches-false-false-ota_os_freertos.c</arguments>
+			</matcher>
+		</filter>
+		<filter>
+			<id>1614803873456</id>
+			<name>lib/AWS/ota-for-aws-iot-embedded-sdk/source/portable/os</name>
+			<type>5</type>
+			<matcher>
+				<id>org.eclipse.ui.ide.multiFilter</id>
+				<arguments>1.0-name-matches-false-false-ota_os_freertos.h</arguments>
 			</matcher>
 		</filter>
 		<filter>
@@ -248,8 +257,8 @@
 			</matcher>
 		</filter>
 		<filter>
-			<id>1607411658377</id>
-			<name>lib/FreeRTOS/ota-for-aws-iot-embedded-sdk/source/dependency/3rdparty/tinycbor</name>
+			<id>1614804088547</id>
+			<name>lib/AWS/ota-for-aws-iot-embedded-sdk/source/dependency/3rdparty/tinycbor</name>
 			<type>10</type>
 			<matcher>
 				<id>org.eclipse.ui.ide.multiFilter</id>
@@ -257,8 +266,8 @@
 			</matcher>
 		</filter>
 		<filter>
-			<id>1607411658383</id>
-			<name>lib/FreeRTOS/ota-for-aws-iot-embedded-sdk/source/dependency/3rdparty/tinycbor</name>
+			<id>1614804088550</id>
+			<name>lib/AWS/ota-for-aws-iot-embedded-sdk/source/dependency/3rdparty/tinycbor</name>
 			<type>10</type>
 			<matcher>
 				<id>org.eclipse.ui.ide.multiFilter</id>
@@ -266,8 +275,8 @@
 			</matcher>
 		</filter>
 		<filter>
-			<id>1607411658389</id>
-			<name>lib/FreeRTOS/ota-for-aws-iot-embedded-sdk/source/dependency/3rdparty/tinycbor</name>
+			<id>1614804088554</id>
+			<name>lib/AWS/ota-for-aws-iot-embedded-sdk/source/dependency/3rdparty/tinycbor</name>
 			<type>10</type>
 			<matcher>
 				<id>org.eclipse.ui.ide.multiFilter</id>
@@ -275,17 +284,8 @@
 			</matcher>
 		</filter>
 		<filter>
-			<id>1607411658394</id>
-			<name>lib/FreeRTOS/ota-for-aws-iot-embedded-sdk/source/dependency/3rdparty/tinycbor</name>
-			<type>10</type>
-			<matcher>
-				<id>org.eclipse.ui.ide.multiFilter</id>
-				<arguments>1.0-name-matches-false-false-scripts</arguments>
-			</matcher>
-		</filter>
-		<filter>
-			<id>1607411418480</id>
-			<name>lib/FreeRTOS/ota-for-aws-iot-embedded-sdk/source/dependency/3rdparty/tinycbor/src</name>
+			<id>1614804042129</id>
+			<name>lib/AWS/ota-for-aws-iot-embedded-sdk/source/dependency/3rdparty/tinycbor/src</name>
 			<type>6</type>
 			<matcher>
 				<id>org.eclipse.ui.ide.multiFilter</id>

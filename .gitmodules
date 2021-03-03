@@ -19,5 +19,5 @@
 	path = lib/pkcs11
 	url = https://github.com/amazon-freertos/pkcs11.git
 [submodule "lib/FreeRTOS/ota-for-aws-iot-embedded-sdk"]
-	path = lib/FreeRTOS/ota-for-aws-iot-embedded-sdk
+	path = lib/AWS/ota-for-aws-iot-embedded-sdk
 	url = https://github.com/aws/ota-for-aws-iot-embedded-sdk.git
