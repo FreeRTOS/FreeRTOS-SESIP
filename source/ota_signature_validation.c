@@ -41,7 +41,58 @@
  */
 #define SIGNATURE_METHOD          cryptoHASH_ALGORITHM_SHA256
 
+/**
+ * @brief Length of block of firmware image to be read at once from flash
+ * to calculate the signature.
+ */
 #define OTA_IMAGE_BLOCK_LENGTH    ( 4096 )
+
+/**
+ * @brief Opens a PKCS11 Session.
+ *
+ * @param[out] xSession Handle to the session opened.
+ * @return CKR_OK if succesful.
+ */
+static CK_RV prvOpenPKCS11Session( CK_SESSION_HANDLE_PTR pSession );
+
+/**
+ * @brief Closes a PKCS11 Session.
+ *
+ * @param[out] xSession Session to be closed.
+ * @return CKR_OK if succesful.
+ */
+static CK_RV prvClosePKCS11Session( CK_SESSION_HANDLE xSession );
+
+/**
+ * @brief Gets the handle for a certificate stored in a PKCS11 slot.
+ *
+ * @param[in] xSession PKCS11 session being opened.
+ * @param[in] pcLabelName String containing the label name for the certificate slot.
+ * @param[out] pxCertHandle The handle for the certificate slot.
+ * @return CKR_OK if succesful
+ */
+static CK_RV prvPKCS11GetCertificateHandle( CK_SESSION_HANDLE xSession,
+                                            const char * pcLabelName,
+                                            CK_OBJECT_HANDLE_PTR pxCertHandle );
+
+
+/**
+ * @brief Verifies the firmware image signature using PKCS11 APIs.
+ * Uses PKCS11 SHA256 hash APIS to calculate running checksum of the image and  verify
+ * the signature using the certificate handle stored in a PKCS11 slot.
+ *
+ * @param[in] session PKCS11 session handle being opened.
+ * @param[in] certificateHandle Certificate handle used for signature validation.
+ * @param[in] pFile File context for the fimrware image.
+ * @param[in] pSignature Signature as received from OTA library.
+ * @param[in] signatureLength Length of the signature.
+ * @return CKR_OK if the firmware image is valid.
+ */
+CK_RV xVerifyImageSignatureUsingPKCS11( CK_SESSION_HANDLE session,
+                                        CK_OBJECT_HANDLE certificateHandle,
+                                        OtaFileContext_t * pFile,
+                                        uint8_t * pSignature,
+                                        size_t signatureLength );
 
 static CK_RV prvPKCS11GetCertificateHandle( CK_SESSION_HANDLE xSession,
                                             const char * pcLabelName,
@@ -247,40 +298,37 @@ BaseType_t xValidateImageSignature( uint8_t * pFilePath,
 
     if( result == pdTRUE )
     {
-
-    	if( PKI_mbedTLSSignatureToPkcs11Signature( pkcs11Signature, pSignature )  !=  0 )
-    	{
-    		PRINTF("Cannot convert signature to PKCS11 format.\r\n" );
-    		result = pdFALSE;
-    	}
+        if( PKI_mbedTLSSignatureToPkcs11Signature( pkcs11Signature, pSignature ) != 0 )
+        {
+            PRINTF( "Cannot convert signature to PKCS11 format.\r\n" );
+            result = pdFALSE;
+        }
     }
 
     if( result == pdTRUE )
     {
+        xPKCS11Status = prvOpenPKCS11Session( &session );
 
-    	xPKCS11Status = prvOpenPKCS11Session( &session );
+        if( xPKCS11Status == CKR_OK )
+        {
+            xPKCS11Status = prvPKCS11GetCertificateHandle( session, pCertificatePath, &certHandle );
+        }
 
-    	if( xPKCS11Status == CKR_OK )
-    	{
-    		xPKCS11Status = prvPKCS11GetCertificateHandle( session, pCertificatePath, &certHandle );
-    	}
+        if( xPKCS11Status == CKR_OK )
+        {
+            xPKCS11Status = xVerifyImageSignatureUsingPKCS11( session,
+                                                              certHandle,
+                                                              &fileContext,
+                                                              pkcs11Signature,
+                                                              pkcs11ECDSA_P256_SIGNATURE_LENGTH );
+        }
 
-    	if( xPKCS11Status == CKR_OK )
-    	{
-    			xPKCS11Status = xVerifyImageSignatureUsingPKCS11( session,
-    					certHandle,
-						&fileContext,
-						pkcs11Signature,
-						pkcs11ECDSA_P256_SIGNATURE_LENGTH );
-    	}
-
-    	if( xPKCS11Status != CKR_OK )
-    	{
-    		PRINTF( "Image verification failed with PKCS11 status %d\r\n", xPKCS11Status );
-    		result = pdFALSE;
-    	}
+        if( xPKCS11Status != CKR_OK )
+        {
+            PRINTF( "Image verification failed with PKCS11 status %d\r\n", xPKCS11Status );
+            result = pdFALSE;
+        }
     }
-
 
     ( void ) xOtaPalCloseFile( &fileContext );
 

@@ -22,6 +22,18 @@
  * http://aws.amazon.com/freertos
  * http://www.FreeRTOS.org
  */
+
+/**
+ * @brief Implementation for MQTT agent APIs.
+ * MQTT agent contains a dedicated FreeRTOS task which runs in a loop and process MQTT operations from
+ * application tasks. A queue is used by the application tasks to enqueue an MQTT operation to be picked
+ * up by the MQTT agent task. MQTT agent task calls the corresponding MQTT library API and adds it to a pending
+ * operations list if the operation requires an acknowledgment. It receives MQTT packets from the network, if there
+ * are no operations in queue to be processed.
+ */
+
+
+
 #include <string.h>
 
 #include "FreeRTOS.h"
@@ -35,40 +47,75 @@
 #include "core_mqtt_agent.h"
 
 /**
- * Task priority for MQTT agent is set to the higher priority than
- * other tasks so that it does not starve other tasks who is waiting for
- * an MQTT operation to complete.
- *
+ * @brief Task priority for MQTT agent is set to higher priority than other tasks.
  */
 #define MQTT_AGENT_TASK_PRIORITY                ( configMAX_PRIORITIES - 1 )
 
-/*
- * Stack size of the MQTT agent, will be the minimum size required by the MQTT library
+/**
+ * @brief Stack size of the MQTT agent, will be the minimum size required by the MQTT library
  * and the underlying transport interface.
  */
 #define MQTT_AGENT_TASK_STACK_SIZE              ( 2048 )
 
 /**
- * Maximum number of concurrent operations for MQTT agent.
+ * @brief Maximum number of concurrent operations for MQTT agent.
  */
 #define MQTT_AGENT_MAX_CONCURRENT_OPERATIONS    ( 5 )
 
 /**
- * Maximum polling interval for the agent. The agent will be listening on incoming messages during
+ * @brief Maximum polling interval for the agent. The agent will be listening on incoming messages during
  * this interval.
  */
 #define MQTT_AGENT_MAX_POLLING_INTERVAL_MS      ( 500 )
 
+/**
+ * @brief Function used to add a MQTT operation to the pending list for receiving ACKS from broker.
+ *
+ * @param[in] pOperation Pointer to the operation pending.
+ * @return pdTRUE if the operation was enqueued, pdFALSE if max pending operations are reached.
+ */
+static BaseType_t addPendingOperation( MQTTOperation_t * pOperation );
+
+/**
+ * @brief Pops pending MQTT operation with the packet identifier.
+ *
+ * @param[in] packetIndentifier The packet identifier for the pending MQTT operation.
+ * @return Pointer to the MQTT operation poped, NULL if there are no operations with that packet identifier.
+ */
+static MQTTOperation_t * getPendingOperation( uint16_t packetIdentifier );
+
+/**
+ * @brief Main agent task loop.
+ * Agent runs in a loop processing MQTT operations from application tasks. It exits loop on explicitly calling
+ * MQTTAgent_Stop() from application tasks.
+ *
+ * @param[in] pParams Paramaters for the agent task.
+ */
+static void prvMQTTAgentLoop( void * pParams );
+
+/**
+ * @brief The default operation used when there are no other operations in queue.
+ */
 static MQTTOperation_t receiveOP =
 {
     .type = MQTT_OP_RECEIVE
 };
 
+/**
+ * @brief Queue used to receive MQTT operations to be processed by MQTT agent.
+ */
 static QueueHandle_t xOperationsQueue;
 
+/**
+ * @brief Static array used to keep track of pending MQTT operations that require an ACK to be received from broker.
+ */
 static MQTTOperation_t * pendingOperations[ MQTT_AGENT_MAX_CONCURRENT_OPERATIONS ];
 
+/**
+ * @brief Variable used to check if the agent is running.
+ */
 static BaseType_t isAgentRunning = pdFALSE;
+
 
 static BaseType_t addPendingOperation( MQTTOperation_t * pOperation )
 {
@@ -291,7 +338,7 @@ BaseType_t MQTTAgent_ProcessEvent( MQTTContext_t * pMQTTContext,
     return result;
 }
 
-void xMQTTAgentStop( void )
+void MQTTAgent_Stop( void )
 {
     MQTTOperation_t operation = { 0 };
 

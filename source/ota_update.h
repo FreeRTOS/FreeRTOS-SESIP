@@ -31,6 +31,10 @@
 
 #include "core_mqtt.h"
 
+/**
+ * @brief Flag which enables or disables OTA update demo.
+ * OTA demo is enabled by default. To disable set the flag to 0.
+ */
 #define OTA_UPDATE_ENABLED    ( 1 )
 
 /**
@@ -41,9 +45,17 @@
  * @pram[in] pMQTTContext The context for MQTT connection with AWS IoT core.
  * @return pdTRUE if the OTA update task was successfully created.
  */
-
 BaseType_t xStartOTAUpdateDemo( void );
 
+/**
+ * @brief Handles an MQTT packet for OTA.
+ * Filters out  MQTT control and data packets for OTA and queues appropirate events for OTA agent to process them.
+ *
+ * @param[in] pMQTTContext The MQTT context passed from library
+ * @param[in] pPacketInfo  Pointer to the MQTT packet information
+ * @param[in] pDeserializedInfo Pointer to the deserialized publish packet information.
+ * @return pdTRUE if the packet was successfully processed.
+ */
 BaseType_t xOTAProcessMQTTEvent( MQTTContext_t * pMQTTContext,
                                  struct MQTTPacketInfo * pPacketInfo,
                                  struct MQTTDeserializedInfo * pDeserializedInfo );
@@ -53,6 +65,7 @@ BaseType_t xOTAProcessMQTTEvent( MQTTContext_t * pMQTTContext,
  * @param[in] pCertificatePath The file path for the certificate, This can be certificate slot label name in PKCS11.
  * @param[in] pSignature  The signature for the image, received from server.
  * @param[in] signatureLength Length of the signature.
+ * @return pdTRUE if the signature of the image is valid.
  */
 BaseType_t xValidateImageSignature( uint8_t * pFilePath,
                                     char * pCertificatePath,

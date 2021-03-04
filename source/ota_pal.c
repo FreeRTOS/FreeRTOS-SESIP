@@ -23,22 +23,48 @@
  * http://www.FreeRTOS.org
  */
 
+/**
+ * @brief File contains OTA platform layer abstraction implementations using NXP SDK.
+ */
+
 #include "ota_pal.h"
 #include "fsl_debug_console.h"
 #include "spifi_boot.h"
 #include "mflash_drv.h"
 
+/**
+ * @brief The maximum size of each image slots.
+ * Flash memory is divided in such a way there are 3 slots one for the current image
+ * being executed, one for new image being written to and one for the backup image.
+ */
 #define OTA_IMAGE_SLOT_SIZE      ( 0x200000 )
+
+/**
+ * @brief The flash address where the new image will be written to.
+ */
 #define OTA_UPDATE_IMAGE_ADDR    ( BOOT_EXEC_IMAGE_ADDR + 1 * OTA_IMAGE_SLOT_SIZE )
+
+/**
+ * @brief The flash address where the backup image will be stored for rollback.
+ */
 #define OTA_BACKUP_IMAGE_ADDR    ( BOOT_EXEC_IMAGE_ADDR + 2 * OTA_IMAGE_SLOT_SIZE )
 
+/**
+ * @brief Maximum size an offset of a firmware image can go in flash.
+ */
 #define OTA_MAX_IMAGE_SIZE       ( OTA_IMAGE_SLOT_SIZE )
+
+/**
+ * @brief Pointer representation of the new firmware image in flash
+ */
 #define OTA_UPDATE_IMAGE_PTR     ( ( void * ) OTA_UPDATE_IMAGE_ADDR )
+
+/**
+ * @brief Pointer representation of the backup firmware image in flash
+ */
 #define OTA_BACKUP_IMAGE_PTR     ( ( void * ) OTA_BACKUP_IMAGE_ADDR )
 
 
-/* Specify the OTA signature algorithm we support on this platform. */
-const char OTA_JsonFileSignatureKey[ OTA_FILE_SIG_KEY_STR_MAX_LENGTH ] = "sig-sha256-ecdsa";
 
 /* low level file context structure */
 typedef struct
@@ -48,6 +74,15 @@ typedef struct
     uint32_t Size;
 } LL_FileContext_t;
 
+/**
+ * @brief Get the low level PAL file context from OTA file context.
+ *
+ * @param[in] Pointer to OTA file context.
+ */
+static LL_FileContext_t * prvPAL_GetLLFileContext( OtaFileContext_t * const C );
+
+/* Specify the OTA signature algorithm we support on this platform. */
+const char OTA_JsonFileSignatureKey[ OTA_FILE_SIG_KEY_STR_MAX_LENGTH ] = "sig-sha256-ecdsa";
 
 static LL_FileContext_t prvPAL_CurrentFileContext;
 

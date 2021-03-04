@@ -23,45 +23,74 @@
  * http://www.FreeRTOS.org
  */
 
-#ifndef MQTT_AGENT_H
-#define MQTT_AGENT_H
+/**
+ * @brief Header file containing MQTT agent APIS.
+ * MQTT agents APIs are used to manage MQTT APIS thread safety in a multithreaded evironment.
+ * This is a lightweight MQTT agent implementation to demonstrate how concurrent tasks can share the same
+ * MQTT connection and publish and subscribe to different topics with the MQTT broker.
+ */
 
+#ifndef CORE_MQTT_AGENT_H
+#define CORE_MQTT_AGENT_H
+
+/* FreeRTOS include. */
 #include "FreeRTOS.h"
-#include "queue.h"
 
+/* MQTT library include */
 #include "core_mqtt.h"
 
+/**
+ * @brief Forward declaration of MQTT operation struct.
+ * The struct is used by the application to enqueue an MQTT operation to be processed
+ * by the MQTT agent.
+ */
 struct MQTTOperation;
 
-typedef void ( * MQTTOperationStatusCallback_t ) ( struct MQTTOperation *pOperation, MQTTStatus_t status );
+/**
+ * @brief Callback invoked by MQTT agent to notify the status of MQTT operation.
+ * The callback will be invoked on a sucessful sent if its Qos0 publish, or when an ACK packet
+ * is received for Qos1,2 publishes, subscribe and unsubscribe.
+ *
+ * @param[in] pOperation Pointer to the MQTT operation structure passed from application.
+ * @param[in] status Status of the MQTT operation.
+ */
+typedef void ( * MQTTOperationStatusCallback_t ) ( struct MQTTOperation * pOperation,
+                                                   MQTTStatus_t status );
 
+/**
+ * @brief Definitions for all MQTT operation types handled by the MQTT agent.
+ */
 typedef enum MQTTOperationType
 {
-	MQTT_OP_PUBLISH = 0,
-	MQTT_OP_SUBSCRIBE,
-	MQTT_OP_UNSUBSCRIBE,
-	MQTT_OP_RECEIVE,
-	MQTT_OP_STOP
+    MQTT_OP_PUBLISH = 0,
+    MQTT_OP_SUBSCRIBE,
+    MQTT_OP_UNSUBSCRIBE,
+    MQTT_OP_RECEIVE,
+    MQTT_OP_STOP
 } MQTTOperationType_t;
 
-
+/**
+ * @brief Structure used to hold parameters for MQTT operation enqueued with the agent.
+ */
 typedef union MQTTOperationInfo
 {
-	MQTTPublishInfo_t * pPublishInfo;
-	struct
-	{
-		MQTTSubscribeInfo_t *pSubscriptionList;
-		uint16_t numSubscriptions;
-	} subscriptionInfo;
-
+    MQTTPublishInfo_t * pPublishInfo;
+    struct
+    {
+        MQTTSubscribeInfo_t * pSubscriptionList;
+        uint16_t numSubscriptions;
+    } subscriptionInfo;
 } MQTTOperationInfo_t;
 
+/**
+ * @brief Structure used to hold the MQTT operation enqueued with the MQTT agent.
+ */
 typedef struct MQTTOperation
 {
-	MQTTOperationType_t type;
-	MQTTOperationInfo_t info;
-	MQTTOperationStatusCallback_t callback;
-	uint16_t packetIdentifier;
+    MQTTOperationType_t type;
+    MQTTOperationInfo_t info;
+    MQTTOperationStatusCallback_t callback;
+    uint16_t packetIdentifier;
 } MQTTOperation_t;
 
 /**
@@ -69,28 +98,42 @@ typedef struct MQTTOperation
  * Enqueues an MQTT receive operation by default.
  * The API should be called after an MQTT connection is established.
  *
+ * @param[in] pContext The corteMQTT library MQTT context.
+ * @return pdTRUE if the initialization was successful.
+ *
  */
-BaseType_t MQTTAgent_Init( MQTTContext_t *pContext );
+BaseType_t MQTTAgent_Init( MQTTContext_t * pContext );
 
 /*
  * @brief Enqueues an MQTT operation to be executed in agent context.
  * Result of the operation will be available using MQTTOperationStatusCallback_t.
- *
+ * @param[in] pOperation Pointer to the structure containing operation type and params.
+ * @param[in] timeoutTicks Timeout in ticks API blocks for enqueue operation to succeed.
+ * @return pdTRUE If the operation was successfully enqueued with the agent.
  */
-BaseType_t MQTTAgent_Enqueue( MQTTOperation_t *pOperation, TickType_t timeoutTicks );
+BaseType_t MQTTAgent_Enqueue( MQTTOperation_t * pOperation,
+                              TickType_t timeoutTicks );
 
 /*
- * @brief API to process an MQTT event for an agent.
- * The API follows chain of responsibility principle, and should be invoked from the main MQTT event loop.
- * API returns pdFALSE if it cant process the MQTT event.
+ * @brief Handler invoked for incoming MQTT packets to the MQTT agent.
+ * The API is invoked from the main MQTT event callback on every packet received on the MQTT
+ * connection. The agent should process only ACK packets and invokes the application task callbacks.
+ * It should return pdFALSE for all other packets indicating further processing is required.
+ *
+ * @param[in] pMQTTContext Pointer to the context used by the coreMQTT library.
+ * @param[in] pPacketInfo Pointer to the MQTT packet information.
+ * @param[in] pDeserializedInfo Pointer to deserialized Publish packet information.
+ * @return pdTRUE if the agent processed the message indicating no further processing required.
+ *
  */
-BaseType_t MQTTAgent_ProcessEvent( MQTTContext_t *pMQTTContext,
-		                           struct MQTTPacketInfo * pPacketInfo,
-		                           struct MQTTDeserializedInfo * pDeserializedInfo );
+BaseType_t MQTTAgent_ProcessEvent( MQTTContext_t * pMQTTContext,
+                                   struct MQTTPacketInfo * pPacketInfo,
+                                   struct MQTTDeserializedInfo * pDeserializedInfo );
+
 /**
  * @brief Stops the agent task and deletes the queue.
  * Should be called before disconnecting an MQTT connection.
  */
 void MQTTAgent_Stop( void );
 
-#endif
+#endif /* ifndef CORE_MQTT_AGENT_H */

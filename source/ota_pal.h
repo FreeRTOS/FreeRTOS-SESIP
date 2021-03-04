@@ -23,33 +23,109 @@
  * http://www.FreeRTOS.org
  */
 
+
+/**
+ * @brief Header file containing platfrom abstraction layer APIS for OTA update.
+ */
+
 #ifndef OTA_PAL_H
 #define OTA_PAL_H
 
 #include "ota.h"
 
+/**
+ * @brief Retrieve the current firmware image state from flash.
+ *
+ * @param[in] pFileContext Pointer to a context containing firmware image details.
+ * @return Appropirate state of the firmware image.
+ */
 OtaPalImageState_t xOtaPalGetPlatformImageState( OtaFileContext_t * const pFileContext );
 
+/**
+ * @brief Set the current firmware image state in flash.
+ *
+ * @param[in] pFileContext Pointer to a context containing firmware image details.
+ * @param[in] eState State to be set for the firmware image.
+ * @return OtaPalSuccess if succesful, else OTA error code along with detailed PAL error code.
+ */
 OtaPalStatus_t xOtaPalSetPlatformImageState( OtaFileContext_t * const pFileContext,
                                              OtaImageState_t eState );
 
+/**
+ * @brief Resets the device with the current firmware image.
+ * The API can be invoked when aborting the current OTA update to fall back to old image or while activating
+ * new image after a successful update.
+ *
+ * @param[in] pFileContext Pointer to a context containing firmware image details.
+ * @return OtaPalSuccess if succesful, else OTA error code along with detailed PAL error code.
+ */
 OtaPalStatus_t xOtaPalResetDevice( OtaFileContext_t * const pFileContext );
 
+/**
+ * @brief Activates the device with the new firmware image.
+ * The API should prepare the new image to be booted up and reset the device to boot up with the new image.
+ *
+ * @param[in] pFileContext Pointer to a context containing firmware image details.
+ * @return OtaPalSuccess if succesful, else OTA error code along with detailed PAL error code.
+ */
 OtaPalStatus_t xOtaPalActivateNewImage( OtaFileContext_t * const pFileContext );
 
+/**
+ * @brief Writes a block of the firmware image to flash.
+ *
+ * @param[in] pFileContext Pointer to a context containing firmware image details.
+ * @param[in] offset Offset in bytes of the block with in the whole firmware image
+ * @param[in] pData Pointer to buffer containing the block.
+ * @param[in] blockSize Size of the block
+ * @return Number of bytes of block written or < 0 if there is an error.
+ */
 int16_t xOtaPalWriteBlock( OtaFileContext_t * const pFileContext,
                            uint32_t offset,
                            uint8_t * const pData,
                            uint32_t blockSize );
+
+/**
+ * @brief Closes the firmware image after reading or writing.
+ *
+ * @param[in] pFileContext Pointer to a context containing firmware image details.
+ * @return OtaPalSuccess if succesful, else OTA error code along with detailed PAL error code.
+ */
 OtaPalStatus_t xOtaPalCloseFile( OtaFileContext_t * const pFileContext );
 
+/**
+ * @brief Prepares a new firmware image to be written.
+ *
+ * @param[in] pFileContext Pointer to a context containing firmware image details.
+ * @return OtaPalSuccess if succesful, else OTA error code along with detailed PAL error code.
+ */
 OtaPalStatus_t xOtaPalCreateFileForRx( OtaFileContext_t * const pFileContext );
 
-
+/**
+ * @brief Aborts the current firmware image being written.
+ *
+ * @param[in] pFileContext Pointer to a context containing firmware image details.
+ * @return OtaPalSuccess if succesful, else OTA error code along with detailed PAL error code.
+ */
 OtaPalStatus_t xOtaPalAbort( OtaFileContext_t * const pFileContext );
 
+/**
+ * @brief Opens the firmware image for reading
+ * The API is used to verify the image signature after it has been written.
+ *
+ * @param[in] pFileContext Pointer to a context containing firmware image details.
+ * @return OtaPalSuccess if succesful, else OTA error code along with detailed PAL error code.
+ */
 OtaPalStatus_t xOtaPalOpenFileForRead( OtaFileContext_t * const pContext );
 
+/**
+ * @brief Reads a block of firmware image from flash
+ *
+ * @param[in] pFileContext Pointer to a context containing firmware image details.
+ * @param[in] offset Offset in bytes of the block with in the whole firmware image
+ * @param[in] pData Pointer to buffer where block is read to.
+ * @param[in] blockSize Size of the buffer
+ * @return Number of bytes of block read or < 0 if there is an error.
+ */
 int32_t xOtaPalReadBlock( OtaFileContext_t * const pContext,
                           uint32_t offset,
                           uint8_t * pData,
