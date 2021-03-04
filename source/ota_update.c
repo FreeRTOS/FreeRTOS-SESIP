@@ -21,8 +21,12 @@
  */
 
 /**
- * @file ota_demo_core_mqtt.c
- * @brief OTA update example using coreMQTT.
+ * @file ota_update.c
+ * @brief Demonstration of Over the Air Updates using OTA library.
+ * The file creates a task which runs OTA agent task which polls for a new firmware image
+ * to be updated. It uses MQTT protocol over TLS for sending and receiving control and data
+ * packets with AWS IoT. Demo uses MQTT agent apis to share the same MQTT over TLS connection
+ * with the main demo task.
  */
 
 /* Standard includes. */
@@ -49,7 +53,6 @@
 
 /* OTA Library include. */
 #include "ota.h"
-#include "ota_config.h"
 
 /* OTA Library Interface include. */
 #include "ota_os_freertos.h"
@@ -63,26 +66,142 @@
 /*-----------------------------------------------------------*/
 
 /**
- *  Maximum number of reserved topics for Job subscriptions.
+ * @brief Interval for reporting OTA statistics from the demo such as
+ * number of blocks received, procesed and dropped.
  */
-#define MAX_OTA_TOPIC_SUBSCRIPTIONS             ( 22 )
-
-#define OTA_STATISTICS_INTERVAL_MS              ( 5000 )
-
-#define OTA_POLLING_DELAY_MS                    ( 1000 )
-
-#define JOB_RESPONSE_TOPIC_FILTER               "$aws/things/+/jobs/$next/get/accepted"
-#define JOB_RESPONSE_TOPIC_FILTER_LENGTH        ( 37 )
-
-
-#define JOB_NOTIFICATION_TOPIC_FILTER           "$aws/things/+/jobs/notify-next"
-#define JOB_NOTIFICATION_TOPIC_FILTER_LENGTH    ( 30 )
-
-#define DATA_TOPIC_FILTER                       "$aws/things/+/streams/+/data/cbor"
-#define DATA_TOPIC_FILTER_LENGTH                ( 33 )
+#define OTA_STATISTICS_INTERVAL_MS              ( 5000U )
 
 /**
- * @brief Struct for firmware version.
+ * @brief Delay between polling OTA agent, waiting for OTA agent to reach
+ * the desired state.
+ */
+#define OTA_POLLING_DELAY_MS                    ( 1000U )
+
+/**
+ * @brief Wildcard topic filter which matches a response from MQTT broker for a
+ * job request from the device.
+ */
+#define JOB_RESPONSE_TOPIC_FILTER               "$aws/things/+/jobs/$next/get/accepted"
+
+/**
+ * @brief Length of the job response topic filter.
+ */
+#define JOB_RESPONSE_TOPIC_FILTER_LENGTH        ( ( uint16_t ) ( sizeof( JOB_RESPONSE_TOPIC_FILTER ) - 1 ) )
+
+/**
+ * @brief Wildcard topic filter used to match notifications of new jobs received from the broker
+ * after OTA agent has started.
+ */
+#define JOB_NOTIFICATION_TOPIC_FILTER           "$aws/things/+/jobs/notify-next"
+
+/**
+ * @brief Length of job notification topic filter.
+ */
+#define JOB_NOTIFICATION_TOPIC_FILTER_LENGTH    ( ( uint16_t ) ( sizeof( JOB_NOTIFICATION_TOPIC_FILTER ) - 1 ) )
+
+/**
+ * @brief Wildcard topic filter used to match firmware image blocks received over OTA stream.
+ */
+#define DATA_TOPIC_FILTER                       "$aws/things/+/streams/+/data/cbor"
+
+/**
+ * @brief Length of the data topic filter.
+ */
+#define DATA_TOPIC_FILTER_LENGTH                ( ( uint16_t ) ( sizeof( DATA_TOPIC_FILTER ) - 1 ) )
+
+
+/**
+ * @brief Function used by OTA agent to publish control packets with the MQTT broker.
+ * Function is registered as a callback which OTA agent and is invoked by OTA agent to request for new job
+ * or to update the status of the current job. Implementation enqueues
+ * an MQTT operation with the MQTT agent and the waits for publish operation to be complete.
+ *
+ * @param[in] pcTopic Topic filter which needs to be subscribed with MQTT broker.
+ * @param[in] topicLen Length of the topic filter.
+ * @param[in] pMsg The payload to be published to broker.
+ * @param[in] msgSize Length of the payload to be published.
+ * @param[in] qos Quality of Service for the topic filter
+ *
+ * @return  OtaMqttSuccess if subscribed successfully, appropirate error code on failure.
+ */
+static OtaMqttStatus_t mqttPublish( const char * const pcTopic,
+                                    uint16_t topicLen,
+                                    const char * pMsg,
+                                    uint32_t msgSize,
+                                    uint8_t qos );
+
+/**
+ * @brief Function used by OTA agent to subscribe to a topic filter with MQTT broker.
+ * Function is registered as a callback and is invoked by OTA agent at startup. Implementation enqueues
+ * an MQTT operation with the MQTT agent and the waits for subscribes operation to be complete.
+ *
+ * @param[in] pTopicFilter Topic filter which needs to be subscribed with MQTT broker.
+ * @param[in] topicFilterLength Length of the topic filter.
+ * @param[in] qos Quality of Service for the topic filter
+ *
+ * @return  OtaMqttSuccess if subscribed successfully, appropirate error code on failure.
+ */
+static OtaMqttStatus_t mqttSubscribe( const char * pTopicFilter,
+                                      uint16_t topicFilterLength,
+                                      uint8_t qos );
+
+/**
+ * @brief Function used by OTA agent to unsubscribe a topic filter from MQTT broker.
+ * Function is registered as a callback and is invoked by OTA agent invokes before
+ * shutting down. Implementation enqueues an MQTT operation with the MQTT agent and the waits
+ * for unsubscribe operation to be complete.
+ *
+ * @param[in] pTopicFilter Topic filter which needs to be unsubscribed from MQTT broker.
+ * @param[in] topicFilterLength Length of the topic filter.
+ * @param[in] qos Quality of Service for the topic filter
+ *
+ * @return  OtaMqttSuccess if unsubscribed successfully, appropirate error code on failure.
+ */
+static OtaMqttStatus_t mqttUnsubscribe( const char * pTopicFilter,
+                                        uint16_t topicFilterLength,
+                                        uint8_t qos );
+
+/**
+ * @brief User application callback registerd with OTA agent to receive OTA notifications
+ * Application callback can be extended to perform additional self test validations if needed
+ * for the image or postpone the new image activation to a later stage.
+ *
+ * @param[in] event Event received from OTA lib of type OtaJobEvent_t.
+ * @param[in] pData Any data associated with the event.
+ */
+static void otaAppCallback( OtaJobEvent_t event,
+                            const void * pData );
+
+/**
+ * @brief Function used to submit a job document received event  to OTA agent.
+ * Function allocates an event buffer from the pool and enqueues it with OTA agent task for processing.
+ * Function is invoked from the main OTA MQTT packet handler function after matching the respective topic filter.
+ *
+ * @param[in] pPublishInfo MQTT publish structure that contains the job document as payload.
+ */
+static void mqttJobCallback( MQTTPublishInfo_t * pPublishInfo );
+
+/**
+ * @brief Function used to submit firmware block received event to OTA agent.
+ * Function allocates an event from the buffer pool and enqueues it with OTA agent task for processing.
+ * Function is invoked from the main OTA MQTT packet handler function after matching the respective topic filter.
+ *
+ * @param[in] pPublishInfo MQTT publish structure that contains the firmware block as payload.
+ */
+static void mqttDataCallback( MQTTPublishInfo_t * pPublishInfo );
+
+/**
+ * @brief Application defined callback registered with OTA agent invoked when closing an firmware image.
+ * Callback validates the image using SHA256 signature check for integrity.
+ *
+ * @param[in] pFileContext  Context containing firmware image details.
+ * @return OtaPalSuccess if the validation succeeded, appropirate failure code otherwise.
+ */
+static OtaPalStatus_t appCloseFileCallback( OtaFileContext_t * const pFileContext );
+
+
+/**
+ * @brief Structure used to encode OTA application firmware version.
  */
 const AppVersion32_t appFirmwareVersion =
 {
@@ -91,55 +210,64 @@ const AppVersion32_t appFirmwareVersion =
     .u.x.build = APP_VERSION_BUILD,
 };
 
+/**
+ * @brief Timer used to report OTA statistics at regular intervals.
+ * Timer runs as long as OTA agent is active.
+ */
 static TimerHandle_t otaStatsTimer = NULL;
 
 /**
- * @brief Semaphore for synchronizing buffer operations.
+ * @brief Mutex used to handle thread safety while fetching and freeing OTA event buffers.
  */
-static SemaphoreHandle_t bufferSemaphore;
+static SemaphoreHandle_t bufferMutex;
 
 /**
- * @breif Semaphore used to synchronize MQTT operations.
+ * @breif Semaphore used to wait for completion of an MQTT operation by the MQTT aagent.
  */
 static SemaphoreHandle_t opSemaphore;
 
 /**
- * @brief MQTT operation status.
+ * @brief A global variable used to track the status of an MQTT operation.
  */
 static MQTTStatus_t opStatus;
 
 /**
- * @brief Update File path buffer.
+ * @brief Application allocated buffer used to store the OTA firmware image file path.
+ * Buffer is passed to the OTA agent and is used internally by OTA agent.
  */
 static uint8_t updateFilePath[ OTA_MAX_FILE_PATH_SIZE ];
 
 /**
- * @brief Certificate File path buffer.
+ * @brief Application allocated buffer used to store the path of the certificate used for signature validation.
+ * Buffer is passed to the OTA agent and is used internally by OTA agent.
  */
 static uint8_t certFilePath[ OTA_MAX_FILE_PATH_SIZE ];
 
 /**
- * @brief Stream name buffer.
+ * @brief Application allocated buffer to store OTA data stream name.
+ * Buffer is passed to the OTA agent and is used internally by OTA agent.
  */
 static uint8_t streamName[ OTA_MAX_STREAM_NAME_SIZE ];
 
 /**
- * @brief Decode memory.
+ * @brief Application allocated buffer used internally by OTA agent to decode a packet received from broker.
  */
-static uint8_t decodeMem[ otaconfigFILE_BLOCK_SIZE ];
+static uint8_t decodeMem[ ( 1U << otaconfigLOG2_FILE_BLOCK_SIZE ) ];
 
 /**
- * @brief Bitmap memory.
+ * @brief Application allocated buffer used by OTA agent to record the bitmap of the firmware blocks received.
  */
 static uint8_t bitmap[ OTA_MAX_BLOCK_BITMAP_SIZE ];
 
 /**
- * @brief Event buffer.
+ * @brief  A pool of event buffers use to hold job document and firmware data block events.
+ * The pool is statically allocated with a maximum size set to number of concurrent data blocks received in
+ * one window of OTA stream.
  */
 static OtaEventData_t eventBuffer[ otaconfigMAX_NUM_OTA_DATA_BUFFERS ];
 
 /**
- * @brief The buffer passed to the OTA Agent from application while initializing.
+ * @brief structure used to pass application allocated buffers to OTA agent.
  */
 static OtaAppBuffer_t otaBuffer =
 {
@@ -150,107 +278,10 @@ static OtaAppBuffer_t otaBuffer =
     .pStreamName        = streamName,
     .streamNameSize     = OTA_MAX_STREAM_NAME_SIZE,
     .pDecodeMemory      = decodeMem,
-    .decodeMemorySize   = otaconfigFILE_BLOCK_SIZE,
+    .decodeMemorySize   = ( 1U << otaconfigLOG2_FILE_BLOCK_SIZE ),
     .pFileBitmap        = bitmap,
     .fileBitmapSize     = OTA_MAX_BLOCK_BITMAP_SIZE
 };
-
-/**
- * @brief Publish message to a topic.
- *
- * This function publishes a message to a given topic & QoS.
- *
- * @param[in] pacTopic Mqtt topic filter.
- *
- * @param[in] topicLen Length of the topic filter.
- *
- * @param[in] pMsg Message to publish.
- *
- * @param[in] msgSize Message size.
- *
- * @param[in] qos Quality of Service
- *
- * @return OtaMqttSuccess if success , other error code on failure.
- */
-static OtaMqttStatus_t mqttPublish( const char * const pacTopic,
-                                    uint16_t topicLen,
-                                    const char * pMsg,
-                                    uint32_t msgSize,
-                                    uint8_t qos );
-
-/**
- * @brief Subscribe to the MQTT topic filter, and registers the handler for the topic filter with the subscription manager.
- *
- * This function subscribes to the Mqtt topics with the Quality of service
- * received as parameter. This function also registers a callback for the
- * topicfilter.
- *
- * @param[in] pTopicFilter Mqtt topic filter.
- *
- * @param[in] topicFilterLength Length of the topic filter.
- *
- * @param[in] qos Quality of Service
- *
- * @param[in] callback Callback to be registered for handling an incoming PUBLISH message on the topic.
- *
- * @return OtaMqttSuccess if success , other error code on failure.
- */
-static OtaMqttStatus_t mqttSubscribe( const char * pTopicFilter,
-                                      uint16_t topicFilterLength,
-                                      uint8_t qos );
-
-/**
- * @brief Unsubscribe to the Mqtt topics.
- *
- * This function unsubscribes to the Mqtt topics with the Quality of service
- * received as parameter.
- *
- * @param[in] pTopicFilter Mqtt topic filter.
- *
- * @param[in] topicFilterLength Length of the topic filter.
- *
- * @param[qos] qos Quality of Service
- *
- * @return  OtaMqttSuccess if success , other error code on failure.
- */
-static OtaMqttStatus_t mqttUnsubscribe( const char * pTopicFilter,
-                                        uint16_t topicFilterLength,
-                                        uint8_t qos );
-
-/* Callbacks used to handle different events. */
-
-/**
- * @brief Application callback invoked by OTA agent, for various events processed.
- * Application callback can be used to perform various operations like additional self tests if needed
- * for image, postponing the activation of the new image, etc..
- *
- * @param[in] event Event from OTA lib of type OtaJobEvent_t.
- * @param[in] pData Data associated with the event.
- *
- */
-static void otaAppCallback( OtaJobEvent_t event,
-                            const void * pData );
-
-/**
- * @brief Callback that notifies the OTA library when a job document is received.
- *
- * @param[in] pPublishInfo MQTT packet information which stores details of the
- * job document.
- */
-static void mqttJobCallback( MQTTPublishInfo_t * pPublishInfo );
-
-/**
- * @brief Callback that notifies the OTA library when a data block is received.
- *
- * @param[in] pPublishInfo MQTT packet that stores the information of the file block.
- */
-static void mqttDataCallback( MQTTPublishInfo_t * pPublishInfo );
-
-/**
- * @brief Application callback to validate image signature before closing and commiting
- * the image.
- */
-static OtaPalStatus_t appCloseFileCallback( OtaFileContext_t * const pFileContext );
 
 static OtaInterfaces_t otaInterface =
 {
@@ -286,10 +317,10 @@ static OtaInterfaces_t otaInterface =
 
 static void otaEventBufferFree( OtaEventData_t * const pxBuffer )
 {
-    if( xSemaphoreTake( bufferSemaphore, portMAX_DELAY ) == pdTRUE )
+    if( xSemaphoreTake( bufferMutex, portMAX_DELAY ) == pdTRUE )
     {
         pxBuffer->bufferUsed = false;
-        ( void ) xSemaphoreGive( bufferSemaphore );
+        ( void ) xSemaphoreGive( bufferMutex );
     }
     else
     {
@@ -304,7 +335,7 @@ OtaEventData_t * otaEventBufferGet( void )
     uint32_t ulIndex = 0;
     OtaEventData_t * pFreeBuffer = NULL;
 
-    if( xSemaphoreTake( bufferSemaphore, portMAX_DELAY ) == pdTRUE )
+    if( xSemaphoreTake( bufferMutex, portMAX_DELAY ) == pdTRUE )
     {
         for( ulIndex = 0; ulIndex < otaconfigMAX_NUM_OTA_DATA_BUFFERS; ulIndex++ )
         {
@@ -316,7 +347,7 @@ OtaEventData_t * otaEventBufferGet( void )
             }
         }
 
-        ( void ) xSemaphoreGive( bufferSemaphore );
+        ( void ) xSemaphoreGive( bufferMutex );
     }
     else
     {
@@ -746,9 +777,9 @@ BaseType_t xStartOTAUpdateDemo( void )
 
     if( result == pdTRUE )
     {
-        bufferSemaphore = xSemaphoreCreateMutex();
+        bufferMutex = xSemaphoreCreateMutex();
 
-        if( bufferSemaphore == NULL )
+        if( bufferMutex == NULL )
         {
             result = pdFALSE;
         }

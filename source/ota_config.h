@@ -28,31 +28,51 @@
  * @brief OTA user configurable settings.
  */
 
-#ifndef _AWS_OTA_AGENT_CONFIG_H_
-#define _AWS_OTA_AGENT_CONFIG_H_
-
-#include "fsl_debug_console.h"
+#ifndef _OTA_CONFIG_H
+#define _OTA_CONFIG_H
 
 
-#undef OTA_LOG
-#define OTA_LOG                   PRINTF
+/**************************************************/
+/******* DO NOT CHANGE the following order ********/
+/**************************************************/
+
+/* Include logging header files and define logging macros in the following order:
+ * 1. Include the header file "logging_levels.h".
+ * 2. Define the LIBRARY_LOG_NAME and LIBRARY_LOG_LEVEL macros depending on
+ * the logging configuration for MQTT.
+ * 3. Include the header file "logging_stack.h", if logging is enabled for MQTT.
+ */
+
+#include "logging_levels.h"
+
+/* Logging configuration for the MQTT library. */
+#ifndef LIBRARY_LOG_NAME
+    #define LIBRARY_LOG_NAME    "MQTT"
+#endif
+
+#ifndef LIBRARY_LOG_LEVEL
+    #define LIBRARY_LOG_LEVEL    LOG_WARN
+#endif
+
+
+#include "logging_stack.h"
 
 /**
  * @brief The number of words allocated to the stack for the OTA agent.
  */
-#define otaconfigSTACK_SIZE       3584U
+#define otaconfigSTACK_SIZE                    ( 3584U )
 
-#define otaconfigTASK_PRIORITY    ( configMAX_PRIORITIES - 2 )
+/**
+ * @breif Task priority for OTA task.
+ */
+#define otaconfigTASK_PRIORITY                 ( configMAX_PRIORITIES - 2 )
 
 /**
  * @brief Log base 2 of the size of the file data block message (excluding the header).
  *
  * 10 bits yields a data block size of 1KB.
  */
-
 #define otaconfigLOG2_FILE_BLOCK_SIZE          10UL
-
-#define otaconfigFILE_BLOCK_SIZE               1024UL
 
 /**
  * @brief Milliseconds to wait for the self test phase to succeed before we force reset.
@@ -163,4 +183,4 @@
 
 #define OTA_MAX_STREAM_NAME_SIZE    ( 64 )
 
-#endif /* _AWS_OTA_AGENT_CONFIG_H_ */
+#endif /* _OTA_CONFIG_H */

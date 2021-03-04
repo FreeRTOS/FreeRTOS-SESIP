@@ -29,6 +29,11 @@
  * @brief File shows a sample implementation of memory fault handler.
  */
 
+/**
+ * @brief Memory fault handler invoked by the MPU unit for illegal access to a previleged memory.
+ * This overrides the default platform MemManage_Handler and calls the demo defined hard fault
+ * handler in user/demo_restrictions.c file.
+ */
 void MemManage_Handler( void ) __attribute__( ( naked ) );
 /*-----------------------------------------------------------*/
 
