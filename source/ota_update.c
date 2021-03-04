@@ -1,4 +1,5 @@
 /*
+ * FreeRTOS version 202012.00-LTS
  * Copyright (C) 2020 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
@@ -64,21 +65,21 @@
 /**
  *  Maximum number of reserved topics for Job subscriptions.
  */
-#define MAX_OTA_TOPIC_SUBSCRIPTIONS    ( 22 )
+#define MAX_OTA_TOPIC_SUBSCRIPTIONS             ( 22 )
 
-#define OTA_STATISTICS_INTERVAL_MS     ( 5000 )
+#define OTA_STATISTICS_INTERVAL_MS              ( 5000 )
 
-#define OTA_POLLING_DELAY_MS           ( 1000 )
+#define OTA_POLLING_DELAY_MS                    ( 1000 )
 
-#define JOB_RESPONSE_TOPIC_FILTER              "$aws/things/+/jobs/$next/get/accepted"
-#define JOB_RESPONSE_TOPIC_FILTER_LENGTH       ( 37 )
+#define JOB_RESPONSE_TOPIC_FILTER               "$aws/things/+/jobs/$next/get/accepted"
+#define JOB_RESPONSE_TOPIC_FILTER_LENGTH        ( 37 )
 
 
-#define JOB_NOTIFICATION_TOPIC_FILTER          "$aws/things/+/jobs/notify-next"
-#define JOB_NOTIFICATION_TOPIC_FILTER_LENGTH   ( 30 )
+#define JOB_NOTIFICATION_TOPIC_FILTER           "$aws/things/+/jobs/notify-next"
+#define JOB_NOTIFICATION_TOPIC_FILTER_LENGTH    ( 30 )
 
-#define DATA_TOPIC_FILTER                      "$aws/things/+/streams/+/data/cbor"
-#define DATA_TOPIC_FILTER_LENGTH               ( 33 )
+#define DATA_TOPIC_FILTER                       "$aws/things/+/streams/+/data/cbor"
+#define DATA_TOPIC_FILTER_LENGTH                ( 33 )
 
 /**
  * @brief Struct for firmware version.
@@ -236,14 +237,14 @@ static void otaAppCallback( OtaJobEvent_t event,
  * @param[in] pPublishInfo MQTT packet information which stores details of the
  * job document.
  */
-static void mqttJobCallback( MQTTPublishInfo_t * pPublishInfo  );
+static void mqttJobCallback( MQTTPublishInfo_t * pPublishInfo );
 
 /**
  * @brief Callback that notifies the OTA library when a data block is received.
  *
  * @param[in] pPublishInfo MQTT packet that stores the information of the file block.
  */
-static void mqttDataCallback( MQTTPublishInfo_t * pPublishInfo  );
+static void mqttDataCallback( MQTTPublishInfo_t * pPublishInfo );
 
 /**
  * @brief Application callback to validate image signature before closing and commiting
@@ -408,7 +409,7 @@ static void mqttJobCallback( MQTTPublishInfo_t * pPublishInfo )
 
 /*-----------------------------------------------------------*/
 
-static void mqttDataCallback( MQTTPublishInfo_t * pPublishInfo  )
+static void mqttDataCallback( MQTTPublishInfo_t * pPublishInfo )
 {
     OtaEventData_t * pData;
     OtaEventMsg_t eventMsg = { 0 };
@@ -452,42 +453,42 @@ BaseType_t xOTAProcessMQTTEvent( MQTTContext_t * pMQTTContext,
         assert( pDeserializedInfo->pPublishInfo != NULL );
         /* Handle incoming publish. */
         MQTT_MatchTopic( pDeserializedInfo->pPublishInfo->pTopicName,
-        		         pDeserializedInfo->pPublishInfo->topicNameLength,
-						 JOB_RESPONSE_TOPIC_FILTER,
-						 JOB_RESPONSE_TOPIC_FILTER_LENGTH, &isMatched );
+                         pDeserializedInfo->pPublishInfo->topicNameLength,
+                         JOB_RESPONSE_TOPIC_FILTER,
+                         JOB_RESPONSE_TOPIC_FILTER_LENGTH, &isMatched );
 
         if( isMatched == true )
         {
-        	mqttJobCallback( pDeserializedInfo->pPublishInfo );
-        	result = pdTRUE;
+            mqttJobCallback( pDeserializedInfo->pPublishInfo );
+            result = pdTRUE;
         }
 
         if( isMatched == false )
         {
-        	MQTT_MatchTopic( pDeserializedInfo->pPublishInfo->pTopicName,
-        	        		         pDeserializedInfo->pPublishInfo->topicNameLength,
-									 JOB_NOTIFICATION_TOPIC_FILTER,
-        							 JOB_NOTIFICATION_TOPIC_FILTER_LENGTH, &isMatched );
-        	if( isMatched == true )
-        	{
-        		mqttJobCallback( pDeserializedInfo->pPublishInfo );
-        		result = pdTRUE;
-        	}
+            MQTT_MatchTopic( pDeserializedInfo->pPublishInfo->pTopicName,
+                             pDeserializedInfo->pPublishInfo->topicNameLength,
+                             JOB_NOTIFICATION_TOPIC_FILTER,
+                             JOB_NOTIFICATION_TOPIC_FILTER_LENGTH, &isMatched );
 
+            if( isMatched == true )
+            {
+                mqttJobCallback( pDeserializedInfo->pPublishInfo );
+                result = pdTRUE;
+            }
         }
 
         if( isMatched == false )
         {
-        	MQTT_MatchTopic( pDeserializedInfo->pPublishInfo->pTopicName,
-        			pDeserializedInfo->pPublishInfo->topicNameLength,
-					DATA_TOPIC_FILTER,
-					DATA_TOPIC_FILTER_LENGTH, &isMatched );
+            MQTT_MatchTopic( pDeserializedInfo->pPublishInfo->pTopicName,
+                             pDeserializedInfo->pPublishInfo->topicNameLength,
+                             DATA_TOPIC_FILTER,
+                             DATA_TOPIC_FILTER_LENGTH, &isMatched );
 
-        	if( isMatched == true )
-        	{
-        		mqttDataCallback( pDeserializedInfo->pPublishInfo );
-        	    result = pdTRUE;
-        	}
+            if( isMatched == true )
+            {
+                mqttDataCallback( pDeserializedInfo->pPublishInfo );
+                result = pdTRUE;
+            }
         }
     }
 
@@ -656,7 +657,6 @@ static OtaMqttStatus_t mqttUnsubscribe( const char * pTopicFilter,
         {
             PRINTF( "Unsubsribe topic %s to broker.\r\n",
                     pTopicFilter );
-
         }
     }
 
@@ -675,10 +675,10 @@ static void prvOTAStatsTimerCallback( TimerHandle_t xTimer )
         OTA_GetStatistics( &otaStatistics );
 
         PRINTF( " Received: %u   Queued: %u   Processed: %u   Dropped: %u \r\n",
-                   otaStatistics.otaPacketsReceived,
-                   otaStatistics.otaPacketsQueued,
-                   otaStatistics.otaPacketsProcessed,
-                   otaStatistics.otaPacketsDropped );
+                otaStatistics.otaPacketsReceived,
+                otaStatistics.otaPacketsQueued,
+                otaStatistics.otaPacketsProcessed,
+                otaStatistics.otaPacketsDropped );
     }
 }
 
@@ -702,7 +702,7 @@ static OtaPalStatus_t appCloseFileCallback( OtaFileContext_t * const pFileContex
         }
         else
         {
-        	PRINTF( "**** OTA image signature is valid. ***** \r\n" );
+            PRINTF( "**** OTA image signature is valid. ***** \r\n" );
         }
     }
 

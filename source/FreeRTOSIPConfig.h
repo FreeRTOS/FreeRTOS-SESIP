@@ -1,5 +1,5 @@
 /*
- * FreeRTOS Kernel V10.3.0
+ * FreeRTOS version 202012.00-LTS
  * Copyright (C) 2020 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
@@ -303,6 +303,6 @@ extern UBaseType_t uxRand();
 
 #define portINLINE                          __inline
 
-#define NETWORK_INTERFACE_RX_PRIORITY ((configMAX_PRIORITIES-1) | portPRIVILEGE_BIT)
+#define NETWORK_INTERFACE_RX_PRIORITY       ( ( configMAX_PRIORITIES - 1 ) | portPRIVILEGE_BIT )
 
 #endif /* FREERTOS_IP_CONFIG_H */

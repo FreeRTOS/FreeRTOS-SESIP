@@ -1,5 +1,5 @@
 /*
- * FreeRTOS Kernel V10.4.1
+ * FreeRTOS version 202012.00-LTS
  * Copyright (C) 2020 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
@@ -26,23 +26,24 @@
  */
 
 /**
- * @brief Mem fault handler.
+ * @brief File shows a sample implementation of memory fault handler.
  */
-void MemManage_Handler( void ) __attribute__ (( naked ));
+
+void MemManage_Handler( void ) __attribute__( ( naked ) );
 /*-----------------------------------------------------------*/
 
 void MemManage_Handler( void )
 {
-	__asm volatile
-	(
-		" tst lr, #4										\n"
-		" ite eq											\n"
-		" mrseq r0, msp										\n"
-		" mrsne r0, psp										\n"
-		" ldr r1, handler_address_const						\n"
-		" bx r1												\n"
-		"													\n"
-		" handler_address_const: .word vHandleMemoryFault	\n"
-	);
+    __asm volatile
+    (
+        " tst lr, #4										\n"
+        " ite eq											\n"
+        " mrseq r0, msp										\n"
+        " mrsne r0, psp										\n"
+        " ldr r1, handler_address_const						\n"
+        " bx r1												\n"
+        "													\n"
+        " handler_address_const: .word vHandleMemoryFault	\n"
+    );
 }
 /*-----------------------------------------------------------*/
